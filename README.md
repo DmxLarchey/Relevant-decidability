@@ -21,7 +21,7 @@
   König's lemma but inductive counterparts based on the notion of
   Almost Full relations.
 
-### How do I get set up? ###
+### How do I get a set up? ###
 
 * This repository was designed under Coq 8.6. Compile it with `make all`
   (or `make -j 16 all` if you have 16 CPU cores available)
