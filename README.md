@@ -1,4 +1,4 @@
-# A Constructive Mechanization of Kripke-Curry's method for the decidability of Implicational Relevance Logic
+# A Constructive Mechanization of Kripke-Curry's method for the Decidability of Implicational Relevance Logic
 
         (**************************************************************)
         (*   Copyright Dominique Larchey-Wendling [*]                 *)
