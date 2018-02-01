@@ -23,7 +23,7 @@
 
 ### How do I get a set up? ###
 
-* This repository was designed under Coq 8.6. Compile it with `make all`
+* This repository was designed under Coq 8.6. Compile it with `make logical_deciders.vo`
   (or `make -j 16 all` if you have 16 CPU cores available)
   and you can then review the proofs using your favourite Coq IDE.
 
