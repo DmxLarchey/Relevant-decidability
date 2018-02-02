@@ -12,8 +12,8 @@
 ### What is this repository for? ###
 
 * This repository is a companion Coq development for the paper 
-  *Constructive Decision via Redundancy-free Proof-Search* by
-  [Dominique Larchey-Wendling](http://www.loria.fr/~larchey).
+  [*Constructive Decision via Redundancy-free Proof-Search*](http://www.loria.fr/~larchey/papers/IJCAR-2018_paper_74.pdf) 
+  by [Dominique Larchey-Wendling](http://www.loria.fr/~larchey).
   The paper is currently submitted to IJCAR 2018.
 
 * The Coq mechanization of the decidability proof for Implicational Relevance 
