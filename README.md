@@ -14,7 +14,7 @@
 * This repository is a companion Coq development for the paper 
   [*Constructive Decision via Redundancy-free Proof-Search*](http://www.loria.fr/~larchey/papers/IJCAR-2018_paper_74.pdf) 
   by [Dominique Larchey-Wendling](http://www.loria.fr/~larchey).
-  The paper is currently submitted to IJCAR 2018.
+  The paper has been accepted and is going to be presented at IJCAR 2018.
 
 * The Coq mechanization of the decidability proof for Implicational Relevance 
   logic is purely constructive, replacing Kripke/Dickson's lemma and

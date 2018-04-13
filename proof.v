@@ -775,8 +775,8 @@ Section proofs.
       n which bounds every irredundant proof of s
   
         1/ if s has a proof 
-        2/ then s has an everywhere minimal proof (proof_minimize_all_ht)
-        3/ then s has an irredundant proof (proof_min_all_imp_irred)
+        2/ then s has an everywhere minimal proof (proof_eminimize)
+        3/ then s has an irredundant proof (proof_emin_irred)
         4/ then s has a n-bounded proof (proof_irred_bounded)
   
      Decision is simple : since n-bounded proofs is a decidable
