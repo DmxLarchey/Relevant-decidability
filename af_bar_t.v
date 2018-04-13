@@ -25,7 +25,7 @@ Section af_bar_t.
 
     Lemma bar_good_af_t R ll : bar_t (good R) ll -> af_t (R lrlift ll).
     Proof.
-      induction 1 as [ ll Hll | ll Hll IH ] using bar_t_rect.
+      induction 1 as [ ll Hll | ll Hll IH ].
       
       apply in_af_t0.
       induction Hll as [ ll a b Hll Hab | ll a Hll IH ] .
@@ -38,12 +38,12 @@ Section af_bar_t.
 
     Let af_bar_good_rec R : af_t R -> forall S ll, R inc2 S lrlift ll -> bar_t (good S) ll.
     Proof.
-      induction 1 as [ R HR | R HR IHR ] using af_t_rect; intros S ll H.
+      induction 1 as [ R HR | R HR IHR ]; intros S ll H.
       
       apply in_bar_t1; intros u.
       apply in_bar_t1; intros v.
       apply in_bar_t0.
-      cutrewrite (v::u::ll = (v::u::nil)++ll); auto.
+      change (v::u::ll) with ((v::u::nil)++ll).
       apply good_lift_rel_list.
       apply good_inc with (1 := H).
       constructor 1 with u; auto; left; auto.
@@ -53,21 +53,23 @@ Section af_bar_t.
       simpl; unfold lift_rel.
       intros ? ? [ | ]; [ left | right ]; auto.
     Qed.
-
+    
     Lemma af_bar_good_t R ll : af_t (R lrlift ll) -> bar_t (good R) ll.
     Proof.
       intros H; apply af_bar_good_rec with (1 := H); auto.
     Qed.
+    
+    Hint Resolve bar_good_af_t af_bar_good_t.
+    
+    Theorem bar_t_af_t_eq R ll : (af_t (R lrlift ll) -> bar_t (good R) ll)
+                               * (bar_t (good R) ll -> af_t (R lrlift ll)).
+    Proof. split; auto. Qed.
 
     Theorem af_t_bar_t R : af_t R -> bar_t (good R) nil.
-    Proof.
-      apply af_bar_good_t with (ll := nil).
-    Qed.
+    Proof. apply af_bar_good_t with (ll := nil). Qed.
 
     Theorem bar_t_af_t R : bar_t (good R) nil -> af_t R.
-    Proof.
-      apply bar_good_af_t.
-    Qed.
+    Proof. apply bar_good_af_t. Qed.
 
   End bar_t_good_af.
 

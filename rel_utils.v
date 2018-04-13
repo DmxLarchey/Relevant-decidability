@@ -294,6 +294,23 @@ Section iterated.
   Qed.
 
 End iterated.
+
+Section iter.
+  
+  Variable (A : Type) (f : A -> A).
+  
+  Definition iter n x := nat_rect _ x (fun _ => f) n.
+  
+  Fact iter_app x a b : iter (a+b) x = iter a (iter b x).
+  Proof. induction a; simpl; f_equal; auto. Qed.
+    
+  Fact iter_S x n : iter (S n) x = iter n (f x).
+  Proof.
+    replace (S n) with (n+1) by omega.
+    rewrite iter_app; auto.
+  Qed.
+    
+End iter.
  
 (* monotonicity / continuity *)
 

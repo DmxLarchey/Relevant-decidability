@@ -7,9 +7,9 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith List.
+Require Import Arith List Max Omega.
 
-Require Import rel_utils list_utils good_base.
+Require Import rel_utils list_utils good_base finite.
 
 Set Implicit Arguments.
 
@@ -305,5 +305,123 @@ Section fan_t.
 
 End fan_t.
 
+Inductive bar_rel_t X (R : X -> X -> Prop) (P : X -> Prop) x :=
+  | in_brel_t0 : P x -> bar_rel_t R P x
+  | in_brel_t1 : (forall y, R x y -> bar_rel_t R P y) -> bar_rel_t R P x.
 
+Section fan_rel.
+
+  Variables (X : Type) (R : X -> X -> Prop).
+  
+  Variables (next : X -> list X) (next_R : forall x y, In y (next x) -> R x y) 
+            (P : X -> Prop) (HP : forall x y, R x y -> P x -> P y).
+
+  Let N l := flat_map next l.
+ 
+  Fact next_P l : Forall P l -> Forall P (N l).
+  Proof.
+    do 2 rewrite Forall_forall; unfold N.
+    intros H y Hy.
+    apply in_flat_map in Hy.
+    destruct Hy as (x & H1 & H2).
+    generalize (next_R _ _ H2) (H _ H1); apply HP.
+  Qed.
+  
+  Fact iter_N_P n l : Forall P l -> Forall P (iter N n l).
+  Proof.
+    intros H; induction n as [ | n IHn ]; simpl; auto.
+    apply next_P, IHn.
+  Qed.
+  
+  Fact iter_N_app a b l x : In x (iter N (a+b) l) -> exists y, In x (iter N a (y::nil)) /\ In y (iter N b l).
+  Proof.
+    rewrite iter_app.
+    revert x; induction a as [ | a IHa ]; simpl; intros x Hx.
+    exists x; auto.
+    unfold N at 1 in Hx.
+    apply in_flat_map in Hx.
+    destruct Hx as (y & H1 & H2).
+    apply IHa in H1.
+    destruct H1 as (z & H1 & H3).
+    exists z; split; auto.
+    apply in_flat_map.
+    exists y; auto.
+  Qed.
+  
+  Fact iter_N_S n l x : In x (iter N (S n) l) -> exists y, In x (iter N n (y::nil)) /\ In y (N l).
+  Proof.
+    replace (S n) with (n+1) by omega.
+    intros H.
+    apply iter_N_app in H; auto.
+  Qed.
+
+  Let Q n l := forall m, n <= m -> Forall P (iter N m l).
+
+  Theorem fan_t x : bar_rel_t R P x -> { n | Q n (x::nil) }.
+  Proof.
+    induction 1 as [ x Hx | x Hx IHx ].
+    exists 0.
+    intros m Hm; apply iter_N_P; constructor; auto.
+    assert (forall y, In y (N (x::nil)) -> { n | Q n (y::nil) }) as H0.
+    { intros; apply IHx.
+      unfold N in H.
+      apply in_flat_map in H.
+      destruct H as (x' & [ E | [] ] & H); subst x'.
+      apply next_R in H; auto. }
+    apply sig_invert_t in H0.
+    destruct H0 as (ln & Hln).
+    exists (S (lmax ln)).
+    intros [ | m ] Hm.
+    omega.
+    apply Forall_forall.
+    intros y Hy.
+    destruct iter_N_S with (1 := Hy) as (z & H1 & H2).
+    destruct (Forall2_In_inv_left Hln _ H2) as (k & H4 & H5).
+    specialize (H5 m).
+    rewrite Forall_forall in H5.
+    apply H5; auto.
+    apply le_trans with (lmax ln).
+    apply lmax_In; auto.
+    omega.
+  Qed.
+  
+End fan_rel.
+
+Section fan_alt.
+
+  Variables (X : Type) 
+            (R : X -> X -> Prop) (R_fin : forall x, finite_t (R x))
+            (P : X -> Prop) (HP : forall x y, R x y -> P x -> P y).
+            
+  Let R_mono n : forall x y, rel_iter R n x y -> P x -> P y.
+  Proof.
+    induction n as [ | n IHn ]; simpl; intros x y H Hx.
+    destruct H; auto.
+    destruct H as (z & H1 & H2).
+    apply IHn with (1 := H2), HP with (1 := H1), Hx.
+  Qed.
+  
+  (* If R is (computationnaly) finitary and P is R-monotonic,
+     if P is bound to be reached from x, then P is bound to be
+     reached uniformly from x *)
+  
+  Theorem fan_alt_t x : bar_rel_t R P x -> { n | forall m y, n <= m -> rel_iter R m x y -> P y }.
+  Proof.
+    induction 1 as [ x Hx | x Hx IHx ].
+    * exists 0; intros ? ? _ H; apply R_mono with (1 := H); auto.
+    * destruct (R_fin x) as (ll & Hll).
+      assert (IH : forall y, In y ll -> { n | forall m z, n <= m -> rel_iter R m y z -> P z }).
+      { intros y Hy; apply IHx, Hll, Hy. }
+      apply sig_invert_t in IH.
+      destruct IH as (mm & Hmm).
+      exists (S (lmax mm)); intros [ | m ] y Hm.
+      - omega.
+      - intros (z & H1 & H2).
+        apply Hll in H1.
+        destruct (Forall2_In_inv_left Hmm _ H1) as (u & H3 & H4).
+        apply H4 with m; auto.
+        apply le_trans with (1 := lmax_In _ _ H3); omega.
+  Qed.
+  
+End fan_alt.
 
