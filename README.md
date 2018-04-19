@@ -18,7 +18,7 @@
 
 * The Coq mechanization of the decidability proof for Implicational Relevance 
   logic is purely constructive, replacing Kripke/Dickson's lemma and
-  König's lemma but inductive counterparts based on the notion of
+  König's lemma by inductive counterparts based on the notion of
   Almost Full relations.
 
 ### How do I get a set up? ###
