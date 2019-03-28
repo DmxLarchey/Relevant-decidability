@@ -496,8 +496,9 @@ Section proofs.
   Fact ptree_proof_search t b : 
        tree_branch t b 
     -> proof_tree t 
-    -> In b (list_fan (pfx (proof_search (tree_root t)) (length b))).
+    -> In (rev b) (list_fan (pfx_rev (proof_search (tree_root t)) (length b))).
   Proof.
+    rewrite pfx_pfx_rev_eq, list_fan_rev.
     induction 1 as [ | x | b x ll s H1 H2 IH2 ]; 
       try (simpl; left; auto; fail).
     
@@ -552,6 +553,7 @@ Section proofs.
   Proof.
     intros H1 H2.
     generalize (ptree_proof_search H2 (proj1 H1)).
+    rewrite pfx_pfx_rev_eq, list_fan_rev.
     rewrite list_fan_spec, Forall_forall.
     intros H3 y Hy.
     destruct (Forall2_In_inv_left H3 _ Hy) as (u & H4 & H5).
@@ -767,8 +769,7 @@ Section proofs.
     generalize (ptree_proof_search Hb H1); rewrite H0; intros H5.
     apply H2 in Hb.
     revert Hb.
-    apply good_bad_False, C.
-    rewrite pfx_pfx_rev_eq, list_fan_rev; trivial.
+    apply good_bad_False, C; trivial.
   Qed.
 
   (** We collect our arguments. Let s be a stm. We compute

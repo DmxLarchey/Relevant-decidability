@@ -283,20 +283,18 @@ Section af_t_intersection.
     generalize (IHR x _ HT' (fun y z => C y z \/ C x y \/ A x)); intros G0.
     eapply af_t_inc.
 
-    Focus 2.
-    apply G0.
-    intros y z; generalize (Req y z) (Req x y); unfold lift_rel; tauto.
-    intros y z Hyz; generalize (Teq y z); tauto.
+    2: { apply G0.
+         intros y z; generalize (Req y z) (Req x y); unfold lift_rel; tauto.
+         intros y z Hyz; generalize (Teq y z); tauto. }
     
     squeeze.
 
     generalize (IHT x (fun y z => C y z \/ C x y \/ B x)); intros G0.
     eapply af_t_inc.
 
-    Focus 2.
-    apply G0.
-    intros y z; generalize (Req y z) (Req x y); tauto.
-    intros y z [ H1 | H1 ]; apply Teq in H1; tauto.
+    2: { apply G0.
+         intros y z; generalize (Req y z) (Req x y); tauto.
+         intros y z [ H1 | H1 ]; apply Teq in H1; tauto. }
     
     squeeze.
   Qed.

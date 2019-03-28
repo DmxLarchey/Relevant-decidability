@@ -48,6 +48,9 @@ Section Relevant.
              \/ a = 1 /\ e = 1)
   /\ (2 <= h -> h = a + e).
 
+  Fact LR2_condition_1_eq a b c : LR2_condition_1 a b c <-> (a <= c /\ b <= c <= 1 /\ c <= a+b) \/ (2 <= c /\ c = a + b).
+  Proof. unfold LR2_condition_1; omega. Qed.
+
   Definition LR2_condition_2 a e h :=
      (h = 0  -> a = 0 /\ e = 0)
   /\ (h = 1  -> a = 0 /\ e = 0
@@ -58,6 +61,19 @@ Section Relevant.
              \/ a = 1 /\ e = 0
              \/ a = 1 /\ e = 1)
   /\ (3 <= h -> h = 1 + a + e).
+
+  Fact LR2_condition_2_eq a b c : LR2_condition_2 a b c 
+                              <-> (a <= c /\ b <= c <= 1)
+                               \/ (a <= 1 /\ b <= 1 /\ 1 <= a+b <= c /\ c = 2)
+                               \/ (3 <= c /\ c = 1+a+b).
+  Proof. unfold LR2_condition_2; omega. Qed. 
+
+  Fact LR2_condition_2_eq' a b c : LR2_condition_2 a b (1+c) 
+                              <-> (c <= 1 /\ c <= a+b /\ a <= 1 /\ b <= 1)
+                               \/ (2 <= c /\ c = a+b).
+  Proof.
+    rewrite LR2_condition_2_eq; omega.
+  Qed.
 
   (* Proofs for the lazy mathematician ... thank you omega *)
 
@@ -347,23 +363,9 @@ Section Relevant.
   Proof.
     intros H1 H2.
     destruct (LR2_cond_list_contract H1 H2) as (ga' & de' & H3 & H4 & H5).
-    destruct (occ_destruct eqX_dec x l) as (m & H6 & H7).
-    case_eq (occ x l).
-    
-    intros E.
-    specialize (H2 x).
-    rewrite occ_eq, E in H2.
-    exfalso; red in H2; omega.
-    
-    intros n Hn.
-    exists ga', de', (list_repeat x n ++ m).
-    split.
-    revert H3.
-    apply LR2_condition_perm_3.
-    rewrite Hn in H6; auto.
-    split; auto.
-    split; auto.
-    rewrite Hn in H6; auto.
+    destruct list_contract_one_perm with (1 := H2) as (l' & Hl').
+    exists ga', de', l'; split; auto.
+    revert H3; apply LR2_condition_perm_3; auto.
   Qed.
   
   Local Fact forall_split K (P Q : K -> Prop) :

@@ -506,6 +506,20 @@ Section occ_list_repeat.
     rewrite occ_repeat_neq; auto.
   Qed.
 
+  Fact list_contract_one_perm x l m : x::l cc> m -> { m' | m ~p x::m' }.
+  Proof.
+    intros H.
+    destruct (occ_destruct x m) as (k & H6 & H7).
+    case_eq (occ x m).
+    + intros E.
+      specialize (H x).
+      rewrite occ_eq, E in H.
+      exfalso; red in H; omega.
+    + intros n Hn.
+      exists (list_repeat x n ++ k).
+      rewrite Hn in H6; auto.
+  Qed.
+
   Section list_contract_isolate.
    
     (* I do not particularily like those proofs 
