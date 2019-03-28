@@ -21,7 +21,7 @@ Local Notation " g '|--' a " := ((g,a):Seq) (at level 70, no associativity).
 Local Notation " l 'c>>' m " := (list_contract Form_eq_dec l m) (at level 70, no associativity).
 
 Local Notation sf := LR_sf.
-Local Notation LR2c := (LR2_condition Form_eq_dec).
+Local Notation LR2c := (LR2c Form_eq_dec).
 
 Section LR2.
 
@@ -95,7 +95,7 @@ Section LR2.
   
   Fact LR2_b_imp_l n ga de th th' a b d : 
         th ~p (a %> b) :: th'
-     -> LR2c (a %> b) ga de ((a %> b) :: th')
+     -> LR2c (a %> b) ga de th'
      -> LR2_bprovable n (b::de |-- d)
      -> LR2_bprovable n (ga |-- a)
      -> LR2_bprovable (S n) (th |-- d).
@@ -108,7 +108,7 @@ Section LR2.
   
   Fact LR2_imp_l ga de th th' a b d : 
         th ~p (a %> b) :: th'
-     -> LR2c (a %> b) ga de ((a %> b) :: th')
+     -> LR2c (a %> b) ga de th'
      -> LR2_proof (b::de |-- d)
      -> LR2_proof (ga |-- a)
      -> LR2_proof (th |-- d).
@@ -132,7 +132,7 @@ Section LR2.
 
     Hypothesis HP3 : forall n ga de th th' A B C,
                                         th ~p (A %> B) :: th'
-                                     -> LR2c (A %> B) ga de ((A %> B) :: th')
+                                     -> LR2c (A %> B) ga de th'
                                      -> P n (ga |-- A)
                                      -> P n (B :: de |-- C)
                                      -> P (S n) (th |-- C).
@@ -183,7 +183,7 @@ Section LR2.
                                      
     Hypothesis HP3 : forall n ga de th th' a b x,
                                         th ~p (a %> b) :: th'
-                                     -> LR2c (a %> b) ga de (a %> b :: th')
+                                     -> LR2c (a %> b) ga de th'
                                      -> P n (ga |-- a)
                                      -> P n (b::de |-- x)
                                      -> P (S n) (th |-- x).
@@ -207,7 +207,7 @@ Section LR2.
 
     Hypothesis HP3 : forall ga de th th' A B C,
                                         th ~p (A %> B) :: th'
-                                     -> LR2c (A %> B) ga de ((A %> B) :: th')
+                                     -> LR2c (A %> B) ga de th'
                                      -> P (ga |-- A)
                                      -> P (B :: de |-- C)
                                      -> P (th |-- C).
@@ -267,12 +267,12 @@ Section LR2.
     
     destruct s2 as (l & y).
     destruct Hs2 as (? & Hs2); subst y.
-    destruct LR2_condition_contract_cons with (1 := H2) (l := l)
+    destruct LR2c_contract_cons with (1 := H2) (l := l)
       as (ga1 & de1 & th1 & G1 & G2 & G3 & G5).
     revert Hs2; apply list_contract_perm; auto.
     apply LR2_b_imp_l with ga1 de1 th1 a b; auto.
     apply H4; split; auto.
-    apply list_contract_cons, G3.
+    apply list_contract_cons; trivial.
   Qed.
   
   Corollary LR2_perm n l1 l2 a : 

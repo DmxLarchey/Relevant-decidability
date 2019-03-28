@@ -156,7 +156,7 @@ Section LR2_HR.
  
     simpl in H3, H4 |- *.
     apply HR_proof_perm with (1 := Permutation_sym H1).
-    apply HR_proof_list_contract with (1 := LR2_condition_contract H2).
+    apply HR_proof_list_contract with (1 := LR2c_contract H2).
     simpl; rewrite list_Form_to_Form_app.
     revert H4; apply HR_list_Form_to_Form_HR_proof.
     assert (B %> C :: A %> B :: ga ~p A %> B :: ga ++ B %> C :: nil) as H4.
