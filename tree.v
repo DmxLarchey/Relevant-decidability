@@ -323,7 +323,7 @@ Section trees.
     destruct t as [ x ll ]; simpl.
     intros (s' & H1 & H2); subst.
     revert x ll H2.
-    induction H1 as [ s x ll | s t x ll H1 H2 IH ]; intros y ll' H3.
+    induction H1 as [ s | s t x ll H1 H2 IH ]; intros y ll' H3.
     constructor 1; auto.
     constructor 2 with (in_tree x ll); auto.
   Qed.

@@ -521,7 +521,7 @@ Section Contraction_rule.
                                      /\ c = (ga |-- b)
                                      /\ ll = ( (a :: a :: th |-- b) :: nil ).
   Proof.
-    induction 1 as [ ga th a b H1 H2 ].
+    induction 1 as [ ga th a b H1 ].
     exists ga, th, a, b; auto.
   Qed.
   
@@ -604,7 +604,7 @@ Section Weakening_rule.
                                      /\ c = (ga |-- b)
                                      /\ ll = ( (th |-- b) :: nil ).
   Proof.
-    induction 1 as [ ga th a b H1 H2 ].
+    induction 1 as [ ga th a b H1 ].
     exists ga, th, a, b; auto.
   Qed.
   
@@ -760,7 +760,7 @@ Section Left_implication_rule_LR2.
   Inductive LR2_rule_l : Seq -> list Seq -> Prop :=
     | in_LR2_l : forall ga de th th' a b x, 
                                  th ~p (a %> b) :: th'
-                              -> LR2c (a %> b) ga de ((a %> b) :: th')
+                              -> LR2c (a %> b) ga de th
                               -> LR2_rule_l (th |-- x)
                                         ( (ga |-- a) :: (b::de |-- x) :: nil ).
                                        
@@ -770,47 +770,47 @@ Section Left_implication_rule_LR2.
                                              /\ c = (th |-- x)
                                              /\ ll = (ga |-- a) :: (b::de |-- x) :: nil.
   Proof.
-    induction 1 as [ ga de th th' a b x ].
+    induction 1 as [ ga de th th' a b x H1 H2 ].
+    apply LR2_condition_perm_3 with (1 := H1) in H2.
     exists ga, de, th, th', a, b, x; auto.
   Qed.
   
   Fact sf_LR2_rule_l c ll : LR2_rule_l c ll -> Forall (sf c) ll.
   Proof.
     induction 1 as [ ga de th th' a b x H2 H3 ].
-    constructor.
-    intros u [ (y & H4 & H5) | Hy ].
-    apply LR2_condition_prop1 with (1 := H3) in H4.
-    destruct H4 as [ H4 | H4 ].
-    subst y.
-    left; exists (a %> b); split; auto.
-    apply Permutation_in with (1 := Permutation_sym H2).
-    left; auto.
-    left; exists y; split; auto.
-    apply Permutation_in with (1 := Permutation_sym H2).
-    auto.
-    left; exists (a %> b); split.
-    apply Permutation_in with (1 := Permutation_sym H2).
-    left; auto.
-    right; tauto.
-    constructor.
-    intros u [ (y & H4 & H5) | Hy ].
-    destruct H4 as [ ? | H4 ].
-    subst y.
-    left; exists (a %> b); split.
-    apply Permutation_in with (1 := Permutation_sym H2).
-    left; auto.
-    right; tauto.
-    apply LR2_condition_prop2 with (1 := H3) in H4.
-    destruct H4 as [ H4 | H4 ].
-    subst y.
-    left; exists (a %> b); split; auto.
-    apply Permutation_in with (1 := Permutation_sym H2).
-    left; auto.
-    left; exists y; split; auto.
-    apply Permutation_in with (1 := Permutation_sym H2).
-    auto.
-    right; auto.
-    constructor.
+    apply LR2_condition_perm_3 with (1 := H2) in H3.
+    constructor; [ | constructor; [ | constructor ] ].
+    + intros u [ (y & H4 & H5) | Hy ].
+      apply LR2_condition_prop1 with (1 := H3) in H4.
+      destruct H4 as [ H4 | H4 ].
+      subst y.
+      left; exists (a %> b); split; auto.
+      apply Permutation_in with (1 := Permutation_sym H2).
+      left; auto.
+      left; exists y; split; auto.
+      apply Permutation_in with (1 := Permutation_sym H2).
+      auto.
+      left; exists (a %> b); split.
+      apply Permutation_in with (1 := Permutation_sym H2).
+      left; auto.
+      right; tauto.
+    + intros u [ (y & H4 & H5) | Hy ].
+      destruct H4 as [ ? | H4 ].
+      subst y.
+      left; exists (a %> b); split.
+      apply Permutation_in with (1 := Permutation_sym H2).
+      left; auto.
+      right; tauto.
+      apply LR2_condition_prop2 with (1 := H3) in H4.
+      destruct H4 as [ H4 | H4 ].
+      subst y.
+      left; exists (a %> b); split; auto.
+      apply Permutation_in with (1 := Permutation_sym H2).
+      left; auto.
+      left; exists y; split; auto.
+      apply Permutation_in with (1 := Permutation_sym H2).
+      auto.
+      right; auto.
   Qed.
   
   Definition LR2_rule_l_inst := { c : list Form * list Form * list Form * list Form * Form * Form * Form 
@@ -827,7 +827,9 @@ Section Left_implication_rule_LR2.
   
   Fact LR2_rule_l_map_prop : soundly_represents LR2_rule_l LR2_rule_l_map.
   Proof.
-    intros ( ((((((ga,de),th),th'),a),b),x) & H ); simpl; constructor 1 with th'; tauto.
+    intros ( ((((((ga,de),th),th'),a),b),x) & H1 & H2 ); simpl. 
+    constructor 1 with th'; auto.
+    revert H2; apply LR2_condition_perm_3, Permutation_sym; auto.
   Qed.
   
   Fact LR2_rule_l_finite : finitely_represents LR2_rule_l LR2_rule_l_map.
@@ -873,10 +875,11 @@ Section Left_implication_rule_LR2.
     intros H4.
     match goal with [ H : In ?x _ |- _ ] => exists x end; split; auto.
     
-    intros ((((((((ga,de),th'),th''),a),b),x') & H) & H1 & _).
+    intros ((((((((ga,de),th'),th''),a),b),x') & H2 & H3) & H1 & _).
     simpl in H1.
     inversion H1; subst th' x' h.
-    constructor 1 with th''; tauto.
+    constructor 1 with th''; auto.
+    revert H3; apply LR2_condition_perm_3, Permutation_sym; auto.
   Qed.
   
   Hint Resolve LR2_rule_l_map_prop LR2_rule_l_finite.
@@ -998,6 +1001,7 @@ Section Usable_rules.
     destruct H3 as ((_ & H3) & _); rewrite H3.
     destruct H4 as ((_ & H4) & _); rewrite H4.
     apply in_LR2_l with (1 := H1); auto.
+    revert H2; apply LR2_condition_perm_3, Permutation_sym; auto.
     constructor.
     revert H3; apply bproof_root.
     constructor.

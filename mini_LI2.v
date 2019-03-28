@@ -232,7 +232,7 @@ Section LI2.
     generalize (l1 |-- a) (l2 |-- a); clear l1 l2 a.
     intros s1 s2 H; revert H s2.
     
-    induction 1 as [ n l a r H1
+    induction 1 as [ n l a r 
                    | n ga a b H2 
                    | n ga th a b x H1 H2 H3 ]
       using LI2_bprovable_ind; intros s2 Hs2.
