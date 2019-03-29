@@ -47,7 +47,7 @@ Section LR2.
   
   Hint Resolve rule_id_finite_t LR_rule_r_finite_t LR2_rule_l_finite_t.
   
-  Fact LR2_rules_finite_t c : finite_t (LR2_rules c).
+  Lemma LR2_rules_finite_t c : finite_t (LR2_rules c).
   Proof. unfold LR2_rules; repeat apply finite_t_cup; auto. Qed.
   
   Definition LR2_bproof := bproof LR2_rules.

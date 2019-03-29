@@ -524,7 +524,7 @@ Section Relevant.
     intros d; generalize (H1 d); rewrite occ_app; omega.
   Qed.
 
-  Fact LR2c_finite_t x th : finite_t (fun p : _ * _ => let (ga, de) := p in LR2c x ga de th).
+  Lemma LR2c_finite_t x th : finite_t (fun p : _ * _ => let (ga, de) := p in LR2c x ga de th).
   Proof.
     apply finite_t_eq with (2 := LR2_condition_finite_t x (x::th)).
     split; intros []; apply LR2_condition_LR2c.
