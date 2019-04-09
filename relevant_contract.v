@@ -18,7 +18,7 @@ Section Relevant.
   Variables (X : Type) (eqX_dec : forall x y : X, { x = y } + { x <> y }).
   
   Notation occ := (@occ _ eqX_dec).
-  Notation list_contract := (@list_contract _ eqX_dec).
+  Infix "c>>" := (@list_contract _ eqX_dec) (at level 70, no associativity).
 
   Local Fact part_eq p a b : p <= a + b -> { a' : _ & { b' | a' <= a /\ b' <= b /\ p = a' + b' } }.
   Proof.
@@ -48,8 +48,11 @@ Section Relevant.
              \/ a = 1 /\ e = 1)
   /\ (2 <= h -> h = a + e).
 
-  Fact LR2_condition_1_eq a b c : LR2_condition_1 a b c <-> (a <= c /\ b <= c <= 1 /\ c <= a+b) \/ (2 <= c /\ c = a + b).
-  Proof. unfold LR2_condition_1; omega. Qed.
+  Definition LR2c_1 a b c := (c <= 1 /\ c <= a+b /\ a <= c /\ b <= c) \/ (2 <= c /\ c = a + b).
+  Definition LR2c_2 a b c := (c <= 1 /\ c <= a+b /\ a <= 1 /\ b <= 1) \/ (2 <= c /\ c = a + b).
+
+  Fact LR2_condition_1_eq a b c : LR2_condition_1 a b c <-> LR2c_1 a b c.
+  Proof. unfold LR2_condition_1, LR2c_1; omega. Qed.
 
   Definition LR2_condition_2 a e h :=
      (h = 0  -> a = 0 /\ e = 0)
@@ -68,12 +71,8 @@ Section Relevant.
                                \/ (3 <= c /\ c = 1+a+b).
   Proof. unfold LR2_condition_2; omega. Qed. 
 
-  Fact LR2_condition_2_eq' a b c : LR2_condition_2 a b (1+c) 
-                              <-> (c <= 1 /\ c <= a+b /\ a <= 1 /\ b <= 1)
-                               \/ (2 <= c /\ c = a+b).
-  Proof.
-    rewrite LR2_condition_2_eq; omega.
-  Qed.
+  Fact LR2_condition_2_eq' a b c : LR2_condition_2 a b (1+c) <-> LR2c_2 a b c.
+  Proof. unfold LR2_condition_2, LR2c_2; omega. Qed. 
 
   (* Proofs for the lazy mathematician ... thank you omega *)
 
@@ -129,6 +128,17 @@ Section Relevant.
   Definition LR2_condition x (ga de th : list X) :=
        (forall d, d <> x -> LR2_condition_1 (occ d ga) (occ d de) (occ d th))
     /\                      LR2_condition_2 (occ x ga) (occ x de) (occ x th).
+
+  Definition LR2c x ga de th :=
+       (forall d, d <> x -> LR2c_1 (occ d ga) (occ d de) (occ d th))
+    /\                      LR2c_2 (occ x ga) (occ x de) (occ x th).
+
+  Fact LR2_condition_LR2c x ga de th : LR2_condition x ga de (x::th) <-> LR2c x ga de th.
+  Proof.
+    split; intros [ H1 H2 ]; split.
+    2,4: revert H2; rewrite occ_eq; apply LR2_condition_2_eq'.
+    1,2: intros d Hd; generalize (H1 _ Hd); rewrite occ_neq; auto; apply LR2_condition_1_eq.
+  Qed.
    
   Fact LR2_condition_prop1 x ga de th : LR2_condition x ga de th -> incl ga (x::th).
   Proof.
@@ -138,6 +148,13 @@ Section Relevant.
     subst y; generalize (proj2 H1); rewrite occ_eq; omega.
     generalize (proj1 H1 _ D); rewrite occ_neq; auto. 
     intros (H & _); omega.
+  Qed.
+
+  Fact LR2c_prop1 x ga de th : LR2c x ga de th -> incl ga (x::th).
+  Proof.
+    intros H.
+    apply LR2_condition_LR2c, LR2_condition_prop1 in H.
+    intros y Hy; apply H in Hy; revert Hy; simpl; tauto.
   Qed.
   
   Fact LR2_condition_prop2 x ga de th : LR2_condition x ga de th -> incl de (x::th).
@@ -149,12 +166,18 @@ Section Relevant.
     generalize (proj1 H1 _ D); rewrite occ_neq; auto. 
     intros (H & _); omega.
   Qed.
+
+  Fact LR2c_prop2 x ga de th : LR2c x ga de th -> incl de (x::th).
+  Proof.
+    intros H.
+    apply LR2_condition_LR2c, LR2_condition_prop2 in H.
+    intros y Hy; apply H in Hy; revert Hy; simpl; tauto.
+  Qed.
   
   (* Rule LR2_imp_l is a composition of LR1_imp_l with contracttion *)
 
   Fact LR2_condition_contract x ga de th : 
-       LR2_condition x ga de (x::th) 
-    -> list_contract (x::ga++de) (x::th).
+       LR2_condition x ga de (x::th) -> x::ga++de c>> x::th.
   Proof.
     intros H1 y.
     destruct (eqX_dec y x) as [ | D ].
@@ -168,6 +191,12 @@ Section Relevant.
     rewrite occ_app.
     generalize (occ y ga) (occ y de) (occ y th).
     intros a b c; unfold LR2_condition_1, nat_contract; omega.
+  Qed.
+
+  Fact LR2c_contract x ga de th : 
+       LR2c x ga de th -> x::ga++de c>> x::th.
+  Proof.
+    intro; apply LR2_condition_contract,  LR2_condition_LR2c; auto.
   Qed.
 
   Fact LR2_condition_2contract_1 x ga de th : 
@@ -215,115 +244,115 @@ Section Relevant.
     rewrite <- occ_perm with (1 := H1); auto.
   Qed.
 
-  Lemma LR2_condition_list_contract_repeat x y a la e le h lh p : 
-        LR2_condition x (list_repeat y a ++ la) (list_repeat y e ++ le) (list_repeat y h ++ lh)
-       -> occ y lh = 0
-       -> occ y la = 0
-       -> occ y le = 0
-       -> 1 <= p <= h
-       -> exists a' e', LR2_condition x (list_repeat y a' ++ la) (list_repeat y e' ++ le) (list_repeat y p ++ lh)
-                     /\ list_contract (list_repeat y a ++ la) (list_repeat y a' ++ la)
-                     /\ list_contract (list_repeat y e ++ le) (list_repeat y e' ++ le).
+  Fact LR2c_perm_1 x ga ga' de th : 
+       ga ~p ga' 
+    -> LR2c x ga de th 
+    -> LR2c x ga' de th.
   Proof.
-    intros H1 Hlh Hla Hle H2.
-    destruct (eqX_dec y x) as [ H0 | H0 ].
-
-    (* case y = x *)
-
-    subst y.
-    destruct (@LR2_c2_contract a e h p) as (a' & e' & H3 & H4 & H5); auto.
-    apply proj2 in H1.
-    repeat rewrite occ_app in H1.
-    repeat rewrite occ_repeat_eq in H1.
-    rewrite Hlh, Hla, Hle in H1.
-    repeat (rewrite (plus_comm _ 0) in H1; simpl in H1); auto.
-
-    exists a', e'; split.
-    split.
-
-    intros d Hd.
-    generalize (proj1 H1 _ Hd).
-    repeat rewrite occ_app.
-    repeat rewrite occ_repeat_neq; auto.
-    repeat rewrite occ_app.
-    repeat rewrite occ_repeat_eq.
-    rewrite Hlh, Hla, Hle.
-    repeat (rewrite (plus_comm _ 0); simpl); auto.
-
-    split; apply list_repeat_contract_app; auto.
-
-    (* case y <> x *)
-
-    destruct (@LR2_c1_contract a e h p) as (a' & e' & H3 & H4 & H5); auto.
-    apply proj1 in H1.
-    specialize (H1 _ H0).
-    repeat rewrite occ_app in H1.
-    repeat rewrite occ_repeat_eq in H1.
-    rewrite Hlh, Hla, Hle in H1.
-    repeat (rewrite (plus_comm _ 0) in H1; simpl in H1); auto.
-
-    exists a', e'; split.
-    split.
-
-    intros d Hd.
-    destruct (eqX_dec d y).
-
-    subst d.
-    repeat rewrite occ_app.
-    repeat rewrite occ_repeat_eq.
-    rewrite Hlh, Hla, Hle.
-    repeat (rewrite (plus_comm _ 0); simpl); auto.
-
-    generalize (proj1 H1 _ Hd).
-    repeat rewrite occ_app.
-    repeat rewrite occ_repeat_neq; auto.
-
-    generalize (proj2 H1).
-    repeat rewrite occ_app.
-    repeat rewrite occ_repeat_neq; auto.
-
-    split; apply list_repeat_contract_app; auto.
+    intro; do 2 rewrite <- LR2_condition_LR2c.
+    apply LR2_condition_perm_1; auto.
   Qed.
 
-  Lemma LR2_condition_list_contract_cons x y ga de l n p : 
-        LR2_condition x ga de (list_repeat y n ++ l)
-       -> occ y l = 0
-       -> 1 <= p <= n
-       -> exists ga' de', LR2_condition x ga' de' (list_repeat y p ++ l)
-                       /\ list_contract ga ga'
-                       /\ list_contract de de'.
+  Fact LR2c_perm_2 x ga de de' th : 
+       de ~p de' 
+    -> LR2c x ga de th 
+    -> LR2c x ga de' th.
   Proof.
-    intros H1 H2 H3.
+    intro; do 2 rewrite <- LR2_condition_LR2c.
+    apply LR2_condition_perm_2; auto.
+  Qed.
+
+  Fact LR2c_perm_3 x ga de th th' : 
+       th ~p th' 
+    -> LR2c x ga de th 
+    -> LR2c x ga de th'.
+  Proof.
+    intro; do 2 rewrite <- LR2_condition_LR2c.
+    apply LR2_condition_perm_3; constructor; auto.
+  Qed.
+
+  Hint Resolve list_contract_refl.
+
+  Theorem LR2_condition_cntr x y ga de th :
+                              LR2_condition x ga de   (y::y::th)
+           -> exists ga' de', LR2_condition x ga' de' (y::th) 
+                           /\ ga c>> ga' /\ de c>> de'.
+  Proof.
+    intros H.
     destruct (occ_destruct eqX_dec y ga) as (la & Hla1 & Hla).
     destruct (occ_destruct eqX_dec y de) as (le & Hle1 & Hle).
-    revert Hla1 Hle1.
-    generalize (occ y ga) (occ y de); intros a e Hla1 Hle1.
-    apply LR2_condition_perm_1 with (1 := Hla1) in H1.
-    apply LR2_condition_perm_2 with (1 := Hle1) in H1.
-    apply LR2_condition_list_contract_repeat with (p := p) in H1; auto.
-    destruct H1 as (a' & e' & ? & G1 & G2).
-    exists (list_repeat y a' ++ la), (list_repeat y e' ++ le); split; auto; split.
-    revert G1.
-    apply list_contract_perm; auto.
-    apply Permutation_sym; auto.
-    revert G2.
-    apply list_contract_perm; auto.
-    apply Permutation_sym; auto.
-  Qed.
-
-  Theorem LR2_condition_list_contract_one x ga de th th' :
-       LR2_condition x ga de th
-    -> list_contract_one eqX_dec th th'
-    -> exists ga' de', LR2_condition x ga' de' th'
-                    /\ list_contract ga ga'
-                    /\ list_contract de de'.
-  Proof.
-    intros H1 [ y n p ll H2 H3 H4 H5 ].
-    apply LR2_condition_perm_3 with (1 := H2) in H1.
-    apply LR2_condition_list_contract_cons with (p := p) in H1; auto.
-    destruct H1 as (ga' & de' & G1 & G2 & G3).
-    exists ga', de'; split; auto.
-    apply LR2_condition_perm_3 with (1 := Permutation_sym H3); auto.
+    destruct (occ_destruct eqX_dec y th) as (lh & Hlh1 & Hlh).
+    apply LR2_condition_perm_1 with (1 := Hla1) in H.
+    apply LR2_condition_perm_2 with (1 := Hle1) in H.
+    apply LR2_condition_perm_3 with (1 := perm_skip y (perm_skip y Hlh1)) in H.
+    revert H Hla1 Hle1 Hlh1.
+    generalize (occ y ga) (occ y de) (occ y th). 
+    intros na ne nh H Hla1 Hle1 Hlh1.
+    destruct (eqX_dec y x) as [ | D ]; [ subst | ].
+    + destruct H as (H1 & H2).
+      repeat rewrite occ_eq in H2.
+      repeat rewrite occ_app in H2.
+      repeat rewrite occ_repeat_eq in H2.
+      rewrite Hlh, Hle, Hla in H2.
+      repeat rewrite Nat.add_0_r in H2.
+      destruct LR2_c2_contract with (h' := S nh) (1 := H2)
+        as (na' & ne' & H3 & H4 & H5); try omega.
+      exists (list_repeat x na'++la), (list_repeat x ne'++le); split.
+      * apply LR2_condition_perm_3 with (1 := Permutation_sym (perm_skip _ Hlh1)). 
+        split.
+        - intros d Hd; specialize (H1 _ Hd); revert H1.
+          repeat rewrite occ_neq; auto.
+          repeat rewrite occ_app.
+          repeat rewrite occ_repeat_neq; auto.
+        - revert H3.
+          repeat rewrite occ_eq; auto.
+          repeat rewrite occ_app.
+          repeat rewrite occ_repeat_eq; auto.
+          rewrite Hlh, Hle, Hla.
+          repeat rewrite Nat.add_0_r; auto.
+      * split.
+        - apply list_contract_perm with (1 := Permutation_sym Hla1) (2 := Permutation_refl _).
+          apply list_contract_app; auto.
+          apply list_repeat_contract; auto.
+        - apply list_contract_perm with (1 := Permutation_sym Hle1) (2 := Permutation_refl _).
+          apply list_contract_app; auto.
+          apply list_repeat_contract; auto.
+    + destruct H as (H1 & H2).
+      do 2 rewrite occ_neq in H2; auto.
+      repeat rewrite occ_app in H2.
+      do 3 rewrite occ_repeat_neq in H2; auto.
+      simpl in H2.
+      generalize (H1 _ D); intros H3.
+      do 2 rewrite occ_eq in H3.
+      repeat rewrite occ_app in H3.
+      do 3 rewrite occ_repeat_eq in H3.
+      rewrite Hlh, Hle, Hla in H3.
+      repeat rewrite Nat.add_0_r in H3.
+      destruct LR2_c1_contract with (h' := S nh) (1 := H3)
+        as (na' & ne' & H4 & H5 & H6); try omega.
+      exists (list_repeat y na'++la), (list_repeat y ne'++le); split.
+      * apply LR2_condition_perm_3 with (1 := Permutation_sym (perm_skip _ Hlh1)). 
+        split.
+        - intros d Hd; destruct (eqX_dec d y) as [ ? | D1 ]; subst.
+          ** repeat rewrite occ_eq.
+             repeat rewrite occ_app.
+             repeat rewrite occ_repeat_eq.
+             rewrite Hlh, Hle, Hla.
+             repeat rewrite Nat.add_0_r; auto.
+          ** generalize (H1 _ Hd).
+             repeat rewrite occ_neq; auto.
+             repeat rewrite occ_app.
+             repeat rewrite occ_repeat_neq; auto.
+        - repeat rewrite occ_neq; auto.
+          repeat rewrite occ_app.
+          repeat rewrite occ_repeat_neq; auto.
+      * split.
+        - apply list_contract_perm with (1 := Permutation_sym Hla1) (2 := Permutation_refl _).
+          apply list_contract_app; auto.
+          apply list_repeat_contract; auto.
+        - apply list_contract_perm with (1 := Permutation_sym Hle1) (2 := Permutation_refl _).
+          apply list_contract_app; auto.
+          apply list_repeat_contract; auto.
   Qed.
 
   (* Every contraction is a sequence of individual contractions
@@ -333,38 +362,40 @@ Section Relevant.
 
   Theorem LR2_cond_list_contract x ga de th th' :
        LR2_condition x ga de th
-    -> list_contract th th'
+    -> th c>> th'
     -> exists ga' de', LR2_condition x ga' de' th'
-                    /\ list_contract ga ga'
-                    /\ list_contract de de'.
+                    /\ ga c>> ga' /\ de c>> de'.
   Proof.
     intros H1 H2.
-    apply list_contract_trans_one in H2.
-    revert ga de H1.
-    induction H2 as [ th th' H2 | th | th1 th2 th3 H1 IH1 H2 IH2 ]; intros ga de H3.
-    revert H3 H2; apply LR2_condition_list_contract_one.
-    exists ga, de; auto.
-    destruct (IH1 _ _ H3) as (ga1 & de1 & H4 & H5 & H6).
-    destruct (IH2 _ _ H4) as (ga2 & de2 & H7 & H8 & H9).
-    exists ga2, de2; split; auto; split.
-    apply list_contract_trans with ga1; auto.
-    apply list_contract_trans with de1; auto.
+    revert H2 x ga de H1.
+    induction 1 as [ th th' H2 | y th | th1 th2 th3 IH1 IH2 ] using list_contract_one_rect;
+      intros x ga de H1.
+    + exists ga, de; split; auto.
+      revert H1; apply LR2_condition_perm_3; auto.
+    + apply LR2_condition_cntr with (1 := H1).
+    + destruct (IH1 _ _ _ H1) as (ga1 & de1 & H2 & H3 & H4).
+      destruct (IH2 _ _ _ H2) as (ga2 & de2 & ? & ? & ?).
+      exists ga2, de2; split; auto; split.
+      - apply list_contract_trans with (1 := H3); auto.
+      - apply list_contract_trans with (1 := H4); auto.
   Qed.
 
   (* This is the instance of contraction with is needed for the proof of Curry's Lemma *)
   
-  Lemma LR2_condition_contract_cons ga de th x l : 
-        LR2_condition x ga de (x :: th)
-     -> list_contract (x :: th) l
-     -> exists ga' de' th', LR2_condition x ga' de' (x::th') 
-                         /\ list_contract ga ga'
-                         /\ list_contract de de'
+  Lemma LR2c_contract_cons ga de th x l : 
+        LR2c x ga de th
+     -> x :: th c>> l
+     -> exists ga' de' th', LR2c x ga' de' th' 
+                         /\ ga c>> ga'
+                         /\ de c>> de'
                          /\ l ~p x :: th'.
   Proof.
     intros H1 H2.
+    rewrite <- LR2_condition_LR2c in H1.
     destruct (LR2_cond_list_contract H1 H2) as (ga' & de' & H3 & H4 & H5).
     destruct list_contract_one_perm with (1 := H2) as (l' & Hl').
     exists ga', de', l'; split; auto.
+    rewrite <- LR2_condition_LR2c.
     revert H3; apply LR2_condition_perm_3; auto.
   Qed.
   
@@ -465,6 +496,12 @@ Section Relevant.
       trydec.
     Qed.
 
+    Fact LR2c_dec x ga de th : { LR2c x ga de th } + { ~ LR2c x ga de th }.
+    Proof.
+      destruct (LR2_condition_dec x ga de (x::th)); [ left | right ];
+        rewrite <- LR2_condition_LR2c; auto.
+    Qed.
+
   End LR2_cond_dec.
   
   Fact LR2_condition_finite_t x th : finite_t (fun p : _ * _ => let (ga, de) := p in LR2_condition x ga de th).
@@ -485,6 +522,12 @@ Section Relevant.
     generalize (LR2_condition_2contract_2 H).
     intros H1; apply occ_subset with eqX_dec.
     intros d; generalize (H1 d); rewrite occ_app; omega.
+  Qed.
+
+  Lemma LR2c_finite_t x th : finite_t (fun p : _ * _ => let (ga, de) := p in LR2c x ga de th).
+  Proof.
+    apply finite_t_eq with (2 := LR2_condition_finite_t x (x::th)).
+    split; intros []; apply LR2_condition_LR2c.
   Qed.
 
 End Relevant.

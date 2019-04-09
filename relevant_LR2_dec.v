@@ -22,11 +22,13 @@ Set Implicit Arguments.
 
 (* LR2 is used to decide relevant logic *)
 
+Local Notation " g '|--' a " := ((g,a):Seq) (at level 70, no associativity).
+
 Section LR2_decider.
 
   (* Redundancy for LR2 is the reflexivce and transitive closure of the contraction rule *)
 
-  Let redund (y x : Seq) := list_contract Form_eq_dec (fst x) (fst y) /\ snd x = snd y.
+  Definition redund (y x : Seq) := list_contract Form_eq_dec (fst x) (fst y) /\ snd x = snd y.
   
   (* We transport the af_t property from a product (Ramsey theorem) 
      using the very useful af_t_relmap ...
@@ -35,8 +37,9 @@ Section LR2_decider.
      instead and you will feel the difference ...
   *)
 
-  Let LR2_redund_af_t s : af_t (redund <# LR_sf s #>).
+  Theorem Kripke_LR2 ga A : af_t (redund <# LR_sf (ga |-- A) #>).
   Proof.
+    generalize (ga |-- A); clear ga A; intro s.
     generalize (af_t_prod (af_t_list_contract Form_eq_dec (sf_Seq_finite_t s))
                           (af_t_eq_finite (sf_Seq_finite_t s))).
     apply af_t_relmap with (f := fun x y => proj1_sig (fst x) = fst (proj1_sig y)
@@ -64,7 +67,7 @@ Section LR2_decider.
     apply LR_sf_refl.
     apply LR_sf_trans.
     apply sf_LR2_rules.
-    2: apply LR2_redund_af_t.
+    2: intros []; apply Kripke_LR2.
     
     (* contraction is height preserving (Curry's lemma) *)
 

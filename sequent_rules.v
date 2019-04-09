@@ -740,7 +740,7 @@ Section Cut_rule.
   
 End Cut_rule.
 
-Local Notation LR2c := (LR2_condition Form_eq_dec).
+Local Notation LR2c := (@LR2c _ Form_eq_dec).
 
 Section Left_implication_rule_LR2.
   
@@ -760,28 +760,26 @@ Section Left_implication_rule_LR2.
   Inductive LR2_rule_l : Seq -> list Seq -> Prop :=
     | in_LR2_l : forall ga de th th' a b x, 
                                  th ~p (a %> b) :: th'
-                              -> LR2c (a %> b) ga de th
+                              -> LR2c (a %> b) ga de th'
                               -> LR2_rule_l (th |-- x)
                                         ( (ga |-- a) :: (b::de |-- x) :: nil ).
                                        
   Fact LR2_rule_l_inv c ll : LR2_rule_l c ll -> exists ga de th th' a b x,
                                                 th ~p (a %> b) :: th'
-                                             /\ LR2c (a %> b) ga de ((a %> b) :: th')
+                                             /\ LR2c (a %> b) ga de th'
                                              /\ c = (th |-- x)
                                              /\ ll = (ga |-- a) :: (b::de |-- x) :: nil.
   Proof.
     induction 1 as [ ga de th th' a b x H1 H2 ].
-    apply LR2_condition_perm_3 with (1 := H1) in H2.
     exists ga, de, th, th', a, b, x; auto.
   Qed.
   
   Fact sf_LR2_rule_l c ll : LR2_rule_l c ll -> Forall (sf c) ll.
   Proof.
     induction 1 as [ ga de th th' a b x H2 H3 ].
-    apply LR2_condition_perm_3 with (1 := H2) in H3.
     constructor; [ | constructor; [ | constructor ] ].
     + intros u [ (y & H4 & H5) | Hy ].
-      apply LR2_condition_prop1 with (1 := H3) in H4.
+      apply LR2c_prop1 with (1 := H3) in H4.
       destruct H4 as [ H4 | H4 ].
       subst y.
       left; exists (a %> b); split; auto.
@@ -789,7 +787,7 @@ Section Left_implication_rule_LR2.
       left; auto.
       left; exists y; split; auto.
       apply Permutation_in with (1 := Permutation_sym H2).
-      auto.
+      simpl; auto.
       left; exists (a %> b); split.
       apply Permutation_in with (1 := Permutation_sym H2).
       left; auto.
@@ -801,7 +799,7 @@ Section Left_implication_rule_LR2.
       apply Permutation_in with (1 := Permutation_sym H2).
       left; auto.
       right; tauto.
-      apply LR2_condition_prop2 with (1 := H3) in H4.
+      apply LR2c_prop2 with (1 := H3) in H4.
       destruct H4 as [ H4 | H4 ].
       subst y.
       left; exists (a %> b); split; auto.
@@ -809,14 +807,14 @@ Section Left_implication_rule_LR2.
       left; auto.
       left; exists y; split; auto.
       apply Permutation_in with (1 := Permutation_sym H2).
-      auto.
+      simpl; auto.
       right; auto.
   Qed.
   
   Definition LR2_rule_l_inst := { c : list Form * list Form * list Form * list Form * Form * Form * Form 
                                     | match c with ((((((ga,de),th), th'),a),b),x) 
                                                  => th ~p (a %> b) :: th'
-                                                 /\ LR2c (a %> b) ga de ((a %> b) :: th') 
+                                                 /\ LR2c (a %> b) ga de th' 
                                       end }%type.
   
   Definition LR2_rule_l_map : LR2_rule_l_inst -> Seq * list Seq.
@@ -829,7 +827,6 @@ Section Left_implication_rule_LR2.
   Proof.
     intros ( ((((((ga,de),th),th'),a),b),x) & H1 & H2 ); simpl. 
     constructor 1 with th'; auto.
-    revert H2; apply LR2_condition_perm_3, Permutation_sym; auto.
   Qed.
   
   Fact LR2_rule_l_finite : finitely_represents LR2_rule_l LR2_rule_l_map.
@@ -838,48 +835,43 @@ Section Left_implication_rule_LR2.
     generalize (pick_finite_t th); intros (l1 & Hl1).
     set (ll := flat_map (fun u => match u with 
                           | (£ _,_) => nil 
-                          | (a %> b,th') => let mm := proj1_sig (LR2_condition_finite_t Form_eq_dec (a %> b) th)
+                          | (a %> b,th') => let mm := proj1_sig (LR2c_finite_t Form_eq_dec (a %> b) th')
                                             in map (fun d : _ * _=> let (ga,de) := d in ((((((ga,de),th),th'),a),b),x)) mm  
                         end) l1).
     assert (forall u, In u ll -> match u with ((((((ga,de),th),th'),a),b),x) 
                                            => th ~p (a %> b) :: th'
-                                           /\ LR2c (a %> b) ga de ((a %> b) :: th') 
+                                           /\ LR2c (a %> b) ga de th' 
                                  end) as Hll.
-      intros ((((((ga,de),th'),th''),a),b),x'); unfold ll; rewrite in_flat_map.
+    { intros ((((((ga,de),th'),th''),a),b),x'); unfold ll; rewrite in_flat_map.
       intros (([ | a' b' ],p) & H1 & H2).
-      destruct H2.
-      apply in_map_iff in H2.
-      destruct H2 as ((ga',de') & E & H3).
-      inversion E; subst ga' de' th' th'' a' b' x'.
-      apply (proj2_sig (LR2_condition_finite_t Form_eq_dec (a %> b) th)) in H3.
-      apply Hl1 in H1.
-      split; auto.
-      revert H3; apply LR2_condition_perm_3; auto.
+      + destruct H2.
+      + apply in_map_iff in H2.
+        destruct H2 as ((ga',de') & E & H3).
+        inversion E; subst ga' de' th' th'' a' b' x'.
+        apply (proj2_sig (LR2c_finite_t Form_eq_dec (a %> b) p)) in H3.
+        apply Hl1 in H1.
+        split; auto. }
     exists (list_Forall_sig _ _ Hll).
     intros h; split.
-    
-    intros H.
-    apply LR2_rule_l_inv in H.
-    destruct H as (ga & de & th' & th'' & a & b & x' & H0 & H1 & E & H2).
-    inversion E; subst th' x' h.
-    assert (In ((((((ga,de),th),th''),a),b),x) ll) as H3.
-      unfold ll; apply in_flat_map.
+    + intros H.
+      apply LR2_rule_l_inv in H.
+      destruct H as (ga & de & th' & th'' & a & b & x' & H0 & H1 & E & H2).
+      inversion E; subst th' x' h.
+      assert (In ((((((ga,de),th),th''),a),b),x) ll) as H3.
+        unfold ll; apply in_flat_map.
       exists (a %> b, th''); split; simpl; auto.
       apply Hl1; auto.
       apply in_map_iff.
       exists (ga, de); split; auto.
-      apply (proj2_sig (LR2_condition_finite_t Form_eq_dec (a %> b) th)).
-      revert H1; apply LR2_condition_perm_3; auto.
-      apply Permutation_sym; auto.
-    generalize (list_Forall_sig_In_refl _ _ Hll _ H3).
-    intros H4.
-    match goal with [ H : In ?x _ |- _ ] => exists x end; split; auto.
-    
-    intros ((((((((ga,de),th'),th''),a),b),x') & H2 & H3) & H1 & _).
-    simpl in H1.
-    inversion H1; subst th' x' h.
-    constructor 1 with th''; auto.
-    revert H3; apply LR2_condition_perm_3, Permutation_sym; auto.
+      apply (proj2_sig (LR2c_finite_t Form_eq_dec (a %> b) th'')).
+      revert H1; apply LR2c_perm_3; auto.
+      generalize (list_Forall_sig_In_refl _ _ Hll _ H3).
+      intros H4.
+      match goal with [ H : In ?x _ |- _ ] => exists x end; split; auto.
+    + intros ((((((((ga,de),th'),th''),a),b),x') & H2 & H3) & H1 & _).
+      simpl in H1.
+      inversion H1; subst th' x' h.
+      constructor 1 with th''; auto.
   Qed.
   
   Hint Resolve LR2_rule_l_map_prop LR2_rule_l_finite.
@@ -989,7 +981,7 @@ Section Usable_rules.
        LR2_rule_l inc2 rules
     -> forall n ga de th th' a b x tg td, 
                                  th ~p (a %> b) :: th'
-                              -> LR2c (a %> b) ga de ((a %> b) :: th')
+                              -> LR2c (a %> b) ga de th'
                               -> bproof rules n (ga     |-- a) tg
                               -> bproof rules n (b::de  |-- x) td
                               -> bproof rules (S n) (th |-- x) (in_tree (th |-- x) (tg::td::nil)).
@@ -1001,7 +993,6 @@ Section Usable_rules.
     destruct H3 as ((_ & H3) & _); rewrite H3.
     destruct H4 as ((_ & H4) & _); rewrite H4.
     apply in_LR2_l with (1 := H1); auto.
-    revert H2; apply LR2_condition_perm_3, Permutation_sym; auto.
     constructor.
     revert H3; apply bproof_root.
     constructor.
