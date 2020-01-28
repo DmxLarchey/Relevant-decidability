@@ -14,7 +14,7 @@
 * This repository is a companion Coq development for the paper 
   [*Constructive Decision via Redundancy-free Proof-Search*](http://www.loria.fr/~larchey/papers/IJCAR-2018_paper_74.pdf) 
   by [Dominique Larchey-Wendling](http://www.loria.fr/~larchey).
-  The paper has been accepted and is going to be presented at IJCAR 2018.
+  The paper has been presented at IJCAR 2018.
   A [*revised and extended version*](http://www.loria.fr/~larchey/papers/JAR-2019.pdf) 
   of this paper is going to appear in the _Journal of Automated Reasonning_.
 
@@ -32,7 +32,7 @@
 * Compile it with `make all`
   (or `make -j 16 all` if you have 16 CPU cores available)
   and you can then review the proofs using your favorite Coq IDE.
-  The file you want to review first in `logical_deciders.v`.
+  The file you want to review first in [`logical_deciders.v`](logical_deciders.v).
 
 * Compilation was tested thoroughly and should work under the following
   versions of Coq: `Coq 8.8.2`, `Coq 8.9.1` and `Coq 8.10.1`.
