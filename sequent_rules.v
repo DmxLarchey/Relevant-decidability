@@ -25,7 +25,7 @@ Proof.
   intros; apply Form_eq_dec.
 Qed.
 
-Local Hint Resolve Seq_eq_dec.
+Local Hint Resolve Seq_eq_dec : core.
 
 Local Notation " g '|--' a " := ((g,a):Seq) (at level 70, no associativity).
 
@@ -128,7 +128,7 @@ Section Identity_rule.
     intros (? & _ & []).
   Qed.
   
-  Hint Resolve rule_id_map_prop rule_id_finite.
+  Hint Resolve rule_id_map_prop rule_id_finite : core.
 
   Fact rule_id_reif c hs : rule_id c hs -> { i | rule_id_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := rule_id); auto. Qed.
@@ -198,7 +198,7 @@ Section Axiom_rule.
     intros (? & _ & []).
   Qed.
 
-  Hint Resolve rule_ax_map_prop rule_ax_finite.
+  Hint Resolve rule_ax_map_prop rule_ax_finite : core.
 
   Fact rule_ax_reif c hs : rule_ax c hs -> { i | rule_ax_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := rule_ax); auto. Qed.
@@ -279,7 +279,7 @@ Section Right_implication_rule.
     constructor.
   Qed.
   
-  Hint Resolve LR_rule_r_map_prop LR_rule_r_finite.
+  Hint Resolve LR_rule_r_map_prop LR_rule_r_finite : core.
   
   Fact LR_rule_r_reif c hs : LR_rule_r c hs -> { i | LR_rule_r_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := LR_rule_r); auto. Qed.
@@ -366,7 +366,7 @@ Section Left_implication_rule_LR1.
     constructor; auto.
   Qed.
   
-  Hint Resolve LR_rule_l_map_prop LR_rule_l_finite.
+  Hint Resolve LR_rule_l_map_prop LR_rule_l_finite : core.
  
   Fact LR_rule_l_reif c hs : LR_rule_l c hs -> { i | LR_rule_l_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := LR_rule_l); auto. Qed.
@@ -489,7 +489,7 @@ Section Left_implication_rule_LI2.
     constructor; auto.
   Qed.
   
-  Hint Resolve LI2_rule_l_map_prop LI2_rule_l_finite.
+  Hint Resolve LI2_rule_l_map_prop LI2_rule_l_finite : core.
  
   Fact LI2_rule_l_reif c hs : LI2_rule_l c hs -> { i | LI2_rule_l_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := LI2_rule_l); auto. Qed.
@@ -572,7 +572,7 @@ Section Contraction_rule.
     constructor; auto.
   Qed.
   
-  Hint Resolve rule_cntr_map_prop rule_cntr_finite.
+  Hint Resolve rule_cntr_map_prop rule_cntr_finite : core.
   
   Fact rule_cntr_reif c hs : rule_cntr c hs -> { i | rule_cntr_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := rule_cntr); auto. Qed.
@@ -652,7 +652,7 @@ Section Weakening_rule.
     constructor 1 with a; auto.
   Qed.
   
-  Hint Resolve rule_weak_map_prop rule_weak_finite.
+  Hint Resolve rule_weak_map_prop rule_weak_finite : core.
   
   Fact rule_weak_reif c hs : rule_weak c hs -> { i | rule_weak_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := rule_weak); auto. Qed.
@@ -874,7 +874,7 @@ Section Left_implication_rule_LR2.
       constructor 1 with th''; auto.
   Qed.
   
-  Hint Resolve LR2_rule_l_map_prop LR2_rule_l_finite.
+  Hint Resolve LR2_rule_l_map_prop LR2_rule_l_finite : core.
  
   Fact LR2_rule_l_reif c hs : LR2_rule_l c hs -> { i | LR2_rule_l_map i = (c,hs) }.
   Proof. intros ?; apply rule_reif with (r := LR2_rule_l); auto. Qed.

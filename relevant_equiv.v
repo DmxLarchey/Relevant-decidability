@@ -39,7 +39,7 @@ Proof.
   apply LR1_rule_cntr with (1 := H); trivial.
 Qed.
 
-Local Hint Resolve LR1_rule_id perm_skip perm_swap.
+Local Hint Resolve LR1_rule_id perm_skip perm_swap : core.
 
 Local Notation "HR--" := HR_proof.
 Local Notation "x 'LR1-' y" := (LR1_proof (x,y)) (at level 70, no associativity).  
@@ -204,10 +204,9 @@ Proof.
   repeat rewrite occ_app; red; omega.
   repeat rewrite occ_eq.
   repeat rewrite occ_app; red; omega.
-    
-  apply LR2_Curry with (A::A::th).
+  apply LR2_Curry with (A::A::th) B.
   2: revert H2; apply LR2_bprovable_mono; omega.
-  apply Permutation_sym in H1.
+  split; auto; apply Permutation_sym in H1.
   apply list_contract_perm with (1 := Permutation_refl _) (2 := H1).
   intros x; simpl; destruct (Form_eq_dec x A); red; omega.
 Qed.

@@ -93,6 +93,7 @@ Implicit Arguments rel_restr [ X ].
 
 Notation "R '<#' A '#>'" := (fun (x y : sig A) => R (proj1_sig x) (proj1_sig y)) (at level 70, no associativity).
 Notation "P '</' A '/>'" := (fun (x : sig A) => P (proj1_sig x)) (at level 70, no associativity).
+Notation "R 'restr' A" := (R <#A#>) (at level 70, no associativity).
 
 Notation scons := ((fun U (x : U) s i => match i with 0 => x | S i => s i end) _).
 Notation stail := ((fun U (s : nat -> U) i => s (S i)) _).
@@ -399,6 +400,7 @@ End op_comp.
 
 (* restrictions *)
 
+(*
 Definition add_one X (A : X -> Prop) y := fun z => A z \/ y = z.
 Definition rel_restriction X (R : X -> X -> Prop) A := fun x y => R x y /\ A x /\ A y.
     
@@ -422,6 +424,7 @@ Section restrictions.
   Qed.
 
 End restrictions.
+*)
 
 (* lifting, for almost full relations *)
 

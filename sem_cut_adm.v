@@ -43,7 +43,7 @@ Section Relational_phase_semantics.
     intros []; split; apply cl_monotone; auto.
   Qed.
 
-  Hint Resolve cl_inc cl_eq1. (* inc_cl. *)
+  Hint Resolve cl_inc cl_eq1 : core. (* inc_cl. *)
 
   Notation closed := (fun x : M -> Prop => cl x inc1 x).
   
@@ -68,7 +68,7 @@ Section Relational_phase_semantics.
   Proposition composes_monotone A A' B B' : A inc1 A' -> B inc1 B' ->  A ø B inc1 A' ø B'.
   Proof. intros ? ? _ [ ? ? ? ? ? H ]; apply In_composes with (3 := H); auto. Qed.
 
-  Hint Resolve composes_monotone.
+  Hint Resolve composes_monotone : core.
 
   Variable e : M.
 
@@ -100,7 +100,7 @@ Section Relational_phase_semantics.
     apply cl_monotone, H2.
   Qed.
 
-  Hint Resolve cl_stable_imp_stable_l cl_stable_imp_stable_r cl_stable_lr_imp_stable.
+  Hint Resolve cl_stable_imp_stable_l cl_stable_imp_stable_r cl_stable_lr_imp_stable : core.
   
   Notation sg := (@eq _).
 
@@ -123,7 +123,7 @@ Section Relational_phase_semantics.
     constructor 1 with (3 := Hc); auto.
   Qed.
 
-  Hint Resolve composes_commute_1.
+  Hint Resolve composes_commute_1 : core.
 
   Proposition composes_commute A B : cl (A ø B) ~eq1 cl (B ø A).
   Proof. 
@@ -152,7 +152,7 @@ Section Relational_phase_semantics.
     rewrite <- cl_prop; apply Hl.
   Qed.
 
-  Hint Resolve cl_stable_l_imp_r cl_stable_r_imp_l.
+  Hint Resolve cl_stable_l_imp_r cl_stable_r_imp_l : core.
   
   Proposition cl_stable_l_imp_stable : cl_stability_l -> cl_stability.    Proof. auto. Qed. 
   Proposition cl_stable_r_imp_stable : cl_stability_r -> cl_stability.    Proof. auto. Qed.
@@ -162,7 +162,7 @@ Section Relational_phase_semantics.
   Proposition cl_stable_r : cl_stability_r.                               Proof. auto. Qed.
   Proposition cl_stable : cl_stability.                                   Proof. auto. Qed.
 
-  Hint Resolve cl_stable_r cl_stable.
+  Hint Resolve cl_stable_r cl_stable : core.
 
   Hypothesis cl_neutral_1 : cl_neutrality_1.
   Hypothesis cl_neutral_2 : cl_neutrality_2.
@@ -192,7 +192,7 @@ Section Relational_phase_semantics.
     intros _ [? ? ? Ha ? Hc]; apply Ha, In_composes with (3 := Hc); auto.
   Qed.
 
-  Hint Resolve magicwand_monotone.
+  Hint Resolve magicwand_monotone : core.
 
   Proposition cl_magicwand_1 X Y : cl (X -ø cl Y) inc1 X -ø cl Y.
   Proof. 
@@ -206,7 +206,7 @@ Section Relational_phase_semantics.
     apply magicwand_monotone; auto.
   Qed.
  
-  Hint Immediate cl_magicwand_1 cl_magicwand_2.
+  Hint Immediate cl_magicwand_1 cl_magicwand_2 : core.
 
   Proposition cl_magicwand_3 X Y : X -ø cl Y inc1 cl X -ø cl Y.
   Proof.
@@ -218,7 +218,7 @@ Section Relational_phase_semantics.
     constructor 1 with c b; auto.
   Qed.
 
-  Hint Immediate cl_magicwand_3.
+  Hint Immediate cl_magicwand_3 : core.
 
   Proposition closed_magicwand X Y : closed Y -> closed (X -ø Y).
   Proof. 
@@ -229,7 +229,7 @@ Section Relational_phase_semantics.
     apply magicwand_monotone; auto.
   Qed.
 
-  Hint Resolve closed_magicwand.
+  Hint Resolve closed_magicwand : core.
 
   Proposition magicwand_eq_1 X Y : X -ø cl Y ~eq1 cl X -ø cl Y.
   Proof. split; auto. Qed.
@@ -243,7 +243,7 @@ Section Relational_phase_semantics.
     apply inc1_trans with (B := X -ø cl Y); auto.
   Qed.
 
-  Hint Resolve magicwand_eq_1 magicwand_eq_2 magicwand_eq_3.
+  Hint Resolve magicwand_eq_1 magicwand_eq_2 magicwand_eq_3 : core.
 
   Proposition cl_equiv_2 X Y : cl (cl X ø Y) ~eq1 cl (X ø Y).
   Proof. 
@@ -266,7 +266,7 @@ Section Relational_phase_semantics.
     apply cl_monotone, composes_monotone; auto.
   Qed.
 
-  Hint Immediate cl_equiv_2 cl_equiv_3 cl_equiv_4.
+  Hint Immediate cl_equiv_2 cl_equiv_3 cl_equiv_4 : core.
 
   Proposition composes_associative_1 A B C : A ø (B ø C) inc1 cl ((A ø B) ø C).
   Proof.
@@ -280,7 +280,7 @@ Section Relational_phase_semantics.
     repeat apply composes_monotone; apply sg_inc1; auto.
   Qed.
 
-  Hint Immediate composes_associative_1.
+  Hint Immediate composes_associative_1 : core.
 
   Proposition composes_associative A B C : cl (A ø (B ø C)) ~eq1 cl ((A ø B) ø C).
   Proof.
@@ -307,7 +307,7 @@ Section Relational_phase_semantics.
     apply composes_commute.
   Qed.
 
-  Hint Immediate composes_associative.
+  Hint Immediate composes_associative : core.
 
   Proposition composes_congruent_1 A B C : A inc1 cl B -> C ø A inc1 cl (C ø B).
   Proof.
@@ -317,7 +317,7 @@ Section Relational_phase_semantics.
     apply cl_equiv_3.
   Qed.
 
-  Hint Resolve composes_congruent_1.
+  Hint Resolve composes_congruent_1 : core.
 
   Proposition composes_congruent A B C : cl A ~eq1 cl B -> cl (C ø A) ~eq1 cl (C ø B).
   Proof. 
@@ -356,7 +356,7 @@ Section Relational_phase_semantics.
     revert H; apply cl_monotone, sg_inc1; auto.
   Qed.
   
-  Hint Resolve composes_neutral_1 composes_neutral_2.
+  Hint Resolve composes_neutral_1 composes_neutral_2 : core.
 
   Proposition composes_neutral A : cl (sg e ø A) ~eq1 cl A.
   Proof. split; rewrite <- cl_prop; auto. Qed.
@@ -436,7 +436,7 @@ Section Relational_phase_semantics.
   Proposition times_commute_1 A B : A ** B inc1 B ** A.
   Proof. simpl; apply cl_inc, composes_commute_1. Qed.
 
-  Hint Resolve unit_neutral times_commute_1.
+  Hint Resolve unit_neutral times_commute_1 : core.
  
   Proposition times_commute A B : A ** B ~eq1 B ** A.
   Proof. split; auto. Qed.
@@ -457,7 +457,7 @@ Section Relational_phase_semantics.
   Proposition times_associative_2 A B C : A ** (B ** C) inc1 (A ** B) ** C.
   Proof. apply times_associative. Qed.
 
-  Hint Resolve times_associative_1 times_associative_2.
+  Hint Resolve times_associative_1 times_associative_2 : core.
 
   Proposition times_congruence A A' B B' : A ~eq1 A' -> B ~eq1 B' -> A ** B ~eq1 A' ** B'.
   Proof. 
@@ -474,7 +474,7 @@ Section Relational_phase_semantics.
   Proposition adjunction_2 A B C : closed C -> A inc1 B -ø C -> A ** B inc1 C.
   Proof. intros H ?; apply inc1_trans with (2 := H), cl_monotone, magicwand_adj_2; auto. Qed.
 
-  Hint Resolve times_congruence adjunction_1 (* adjunction_2 *).
+  Hint Resolve times_congruence adjunction_1 (* adjunction_2 *) : core.
  
   Proposition adjunction A B C : closed C -> (A ** B inc1 C <-> A inc1 B -ø C).
   Proof.
@@ -490,7 +490,7 @@ Section Relational_phase_semantics.
   Proposition times_bot_distrib_r A : A ** bot inc1 bot.
   Proof. apply inc1_trans with (1 := @times_commute_1 _ _), times_bot_distrib_l. Qed.
  
-  Hint Immediate times_bot_distrib_l times_bot_distrib_r.
+  Hint Immediate times_bot_distrib_l times_bot_distrib_r : core.
 
   Proposition times_lub_distrib_l A B C : (A lub B) ** C inc1 (A ** C) lub (B ** C).
   Proof. 
@@ -534,7 +534,7 @@ Section Relational_phase_semantics.
     induction ll; simpl; auto.
   Qed.
   
-  Hint Resolve cl_Form_sem cl_FList_sem.
+  Hint Resolve cl_Form_sem cl_FList_sem : core.
   
   Fact FList_sem_app l m : [|l++m|] ~eq1 [|l|] ** [|m|].
   Proof.
@@ -655,7 +655,7 @@ End Relational_phase_semantics.
 
 Section Cut_Adm.
 
-  Local Notation " l 'c>>' m " := (list_contract Form_eq_dec l m) (at level 70, no associativity).
+  Local Notation " l '≻c' m " := (list_contract Form_eq_dec l m) (at level 70, no associativity).
 
   Variable (P : list Form -> Form -> Prop).
 
@@ -750,7 +750,7 @@ Section Cut_Adm.
     apply Permutation_app; auto.
   Qed.
   
-  Hypothesis HP_contract : forall ga de x, ga c>> de -> ga |-- x -> de |-- x.
+  Hypothesis HP_contract : forall ga de x, ga ≻c de -> ga |-- x -> de |-- x.
   
   Local Fact cl_cntr : cl_cntr_hyp cl comp.
   Proof.
@@ -825,7 +825,7 @@ Section Cut_Adm.
     apply HP_perm, Permutation_app_comm.
   Qed.
   
-  Hint Resolve cl_increase cl_mono cl_idem cl_stable_l Hv.
+  Hint Resolve cl_increase cl_mono cl_idem cl_stable_l Hv : core.
   
   Local Fact mw_mono (X Y X' Y' : _ -> Prop) : X inc1 X' -> Y inc1 Y' -> X' -ø Y inc1 X -ø Y'.
   Proof.
@@ -876,7 +876,7 @@ End Cut_Adm.
 
 Local Hint Resolve LR1_cf_provable_perm 
                    LR1_cf_provable_contract
-                   LR1_cf_provable_id LR1_cf_provable_r.
+                   LR1_cf_provable_id LR1_cf_provable_r : core.
 
 Theorem LR1_cut_admissibility : LR1_provable inc1 LR1_cf_provable.
 Proof.
@@ -895,7 +895,7 @@ Qed.
 
 Local Hint Resolve LI1_cf_provable_perm 
                    LI1_cf_provable_contract LI1_cf_provable_weakening
-                   LI1_cf_provable_id LI1_cf_provable_r.
+                   LI1_cf_provable_id LI1_cf_provable_r : core.
 
 Theorem LI1_cut_admissibility : LI1_provable inc1 LI1_cf_provable.
 Proof.

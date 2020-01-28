@@ -21,7 +21,7 @@ Require Import formula sequent_rules.
 Set Implicit Arguments.
 
 Local Notation " g '|--' a " := ((g,a):Seq) (at level 70, no associativity).
-Local Notation " l 'c>>' m " := (list_contract Form_eq_dec l m) (at level 70, no associativity).
+Local Notation " l ≻c m " := (list_contract Form_eq_dec l m) (at level 70, no associativity).
 
 Local Notation sf := LR_sf.
 
@@ -42,12 +42,12 @@ Section LI2.
     tauto.
   Qed.
   
-  Hint Resolve sf_rule_ax sf_LR_rule_r sf_LI2_rule_l.
+  Hint Resolve sf_rule_ax sf_LR_rule_r sf_LI2_rule_l : core.
   
   Fact sf_LI2_rules c ll : LI2_rules c ll -> Forall (sf c) ll.
   Proof. intros [[|]|]; auto. Qed.
   
-  Hint Resolve rule_ax_finite_t LR_rule_r_finite_t LI2_rule_l_finite_t.
+  Hint Resolve rule_ax_finite_t LR_rule_r_finite_t LI2_rule_l_finite_t : core.
   
   Fact LI2_rules_finite_t c : finite_t (LI2_rules c).
   Proof. unfold LI2_rules; repeat apply finite_t_cup; auto. Qed.
@@ -278,7 +278,7 @@ Section LI2.
   Qed.
 
   Corollary LI2_contract n l1 l2 a : 
-      l1 c>> l2 -> LI2_bprovable n (l1 |-- a) -> LI2_bprovable n (l2 |-- a).
+      l1 ≻c l2 -> LI2_bprovable n (l1 |-- a) -> LI2_bprovable n (l2 |-- a).
   Proof.
     intro; apply LI2_incl.
     revert H; apply list_contract_incl.

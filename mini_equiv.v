@@ -28,7 +28,7 @@ Proof.
   apply LI1_rule_weak with (1 := H); trivial.
 Qed.
 
-Local Hint Resolve LI1_rule_id perm_skip perm_swap.
+Local Hint Resolve LI1_rule_id perm_skip perm_swap : core.
 
 Local Notation "HI--" := HI_proof.
 Local Notation "x 'LI1-' y" := (LI1_proof (x,y)) (at level 70, no associativity).  

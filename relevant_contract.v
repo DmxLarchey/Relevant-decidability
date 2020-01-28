@@ -18,7 +18,8 @@ Section Relevant.
   Variables (X : Type) (eqX_dec : forall x y : X, { x = y } + { x <> y }).
   
   Notation occ := (@occ _ eqX_dec).
-  Infix "c>>" := (@list_contract _ eqX_dec) (at level 70, no associativity).
+(*  Infix "c>>" := (@list_contract _ eqX_dec) (at level 70, no associativity). *)
+  Infix "≻c" := (@list_contract _ eqX_dec) (at level 70, no associativity).
 
   Local Fact part_eq p a b : p <= a + b -> { a' : _ & { b' | a' <= a /\ b' <= b /\ p = a' + b' } }.
   Proof.
@@ -177,7 +178,7 @@ Section Relevant.
   (* Rule LR2_imp_l is a composition of LR1_imp_l with contracttion *)
 
   Fact LR2_condition_contract x ga de th : 
-       LR2_condition x ga de (x::th) -> x::ga++de c>> x::th.
+       LR2_condition x ga de (x::th) -> x::ga++de ≻c x::th.
   Proof.
     intros H1 y.
     destruct (eqX_dec y x) as [ | D ].
@@ -194,7 +195,7 @@ Section Relevant.
   Qed.
 
   Fact LR2c_contract x ga de th : 
-       LR2c x ga de th -> x::ga++de c>> x::th.
+       LR2c x ga de th -> x::ga++de ≻c x::th.
   Proof.
     intro; apply LR2_condition_contract,  LR2_condition_LR2c; auto.
   Qed.
@@ -271,12 +272,12 @@ Section Relevant.
     apply LR2_condition_perm_3; constructor; auto.
   Qed.
 
-  Hint Resolve list_contract_refl.
+  Hint Resolve list_contract_refl : core.
 
   Theorem LR2_condition_cntr x y ga de th :
                               LR2_condition x ga de   (y::y::th)
            -> exists ga' de', LR2_condition x ga' de' (y::th) 
-                           /\ ga c>> ga' /\ de c>> de'.
+                           /\ ga ≻c ga' /\ de ≻c de'.
   Proof.
     intros H.
     destruct (occ_destruct eqX_dec y ga) as (la & Hla1 & Hla).
@@ -358,13 +359,11 @@ Section Relevant.
   (* Every contraction is a sequence of individual contractions
      of the components *)
 
-  Hint Resolve list_contract_refl.
-
   Theorem LR2_cond_list_contract x ga de th th' :
        LR2_condition x ga de th
-    -> th c>> th'
+    -> th ≻c th'
     -> exists ga' de', LR2_condition x ga' de' th'
-                    /\ ga c>> ga' /\ de c>> de'.
+                    /\ ga ≻c ga' /\ de ≻c de'.
   Proof.
     intros H1 H2.
     revert H2 x ga de H1.
@@ -381,14 +380,16 @@ Section Relevant.
   Qed.
 
   (* This is the instance of contraction with is needed for the proof of Curry's Lemma *)
-  
-  Lemma LR2c_contract_cons ga de th x l : 
-        LR2c x ga de th
-     -> x :: th c>> l
-     -> exists ga' de' th', LR2c x ga' de' th' 
-                         /\ ga c>> ga'
-                         /\ de c>> de'
-                         /\ l ~p x :: th'.
+
+  (* Γ Δ Θ Σ α *)  
+
+  Lemma LR2c_contract_cons Γ Δ Θ α Σ :
+        LR2c α Γ Δ Θ
+     -> α::Θ ≻c Σ
+     -> exists Γ' Δ' Θ', LR2c α Γ' Δ' Θ' 
+                         /\ Γ ≻c Γ'
+                         /\ Δ ≻c Δ'
+                         /\ Σ ~p α::Θ'.
   Proof.
     intros H1 H2.
     rewrite <- LR2_condition_LR2c in H1.
@@ -496,19 +497,19 @@ Section Relevant.
       trydec.
     Qed.
 
-    Fact LR2c_dec x ga de th : { LR2c x ga de th } + { ~ LR2c x ga de th }.
+    Fact LR2c_dec α Γ Δ Θ : { LR2c α Γ Δ Θ } + { ~ LR2c α Γ Δ Θ }.
     Proof.
-      destruct (LR2_condition_dec x ga de (x::th)); [ left | right ];
+      destruct (LR2_condition_dec α Γ Δ (α::Θ)); [ left | right ];
         rewrite <- LR2_condition_LR2c; auto.
     Qed.
 
   End LR2_cond_dec.
   
-  Fact LR2_condition_finite_t x th : finite_t (fun p : _ * _ => let (ga, de) := p in LR2_condition x ga de th).
+  Fact LR2_condition_finite_t α Θ : finite_t (fun p : _ * _ => let (Γ,Δ) := p in LR2_condition α Γ Δ Θ).
   Proof.
-    generalize (subset_finite_t (th++th)); intros H2th.
+    generalize (subset_finite_t (Θ++Θ)); intros H2th.
     generalize (finite_t_product H2th H2th); intros H.
-    destruct (finite_t_cap_dec (fun u : _ * _ => let (ga,de) := u in LR2_condition x ga de th) H) as (ll & Hll).
+    destruct (finite_t_cap_dec (fun u : _ * _ => let (Γ,Δ) := u in LR2_condition α Γ Δ Θ) H) as (ll & Hll).
     intros (?&?); apply LR2_condition_dec.
     exists ll.
     intros (ga,de); rewrite Hll; simpl.
@@ -524,9 +525,9 @@ Section Relevant.
     intros d; generalize (H1 d); rewrite occ_app; omega.
   Qed.
 
-  Lemma LR2c_finite_t x th : finite_t (fun p : _ * _ => let (ga, de) := p in LR2c x ga de th).
+  Lemma LR2c_finite_t α Θ : finite_t (fun p : _ * _ => let (Γ,Δ) := p in LR2c α Γ Δ Θ).
   Proof.
-    apply finite_t_eq with (2 := LR2_condition_finite_t x (x::th)).
+    apply finite_t_eq with (2 := LR2_condition_finite_t α (α::Θ)).
     split; intros []; apply LR2_condition_LR2c.
   Qed.
 

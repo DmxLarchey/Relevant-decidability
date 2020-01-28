@@ -17,8 +17,9 @@ Require Import formula sequent_rules relevant_contract.
 
 Set Implicit Arguments.
 
-Local Notation " g '|--' a " := ((g,a):Seq) (at level 70, no associativity).
-Local Notation " l 'c>>' m " := (list_contract Form_eq_dec l m) (at level 70, no associativity).
+Local Notation " g '|--' a " := ((g,a):Seq) (at level 69, no associativity).
+(* Local Notation " l 'c>>' m " := (list_contract Form_eq_dec l m) (at level 70, no associativity). *)
+Local Infix "≻c" := (list_contract Form_eq_dec) (at level 70, no associativity).
 
 Local Notation sf := LR_sf.
 Local Notation LR2c := (LR2c Form_eq_dec).
@@ -40,12 +41,12 @@ Section LR2.
     tauto.
   Qed.
   
-  Hint Resolve sf_rule_id sf_LR_rule_r sf_LR2_rule_l.
+  Hint Resolve sf_rule_id sf_LR_rule_r sf_LR2_rule_l : core.
   
   Fact sf_LR2_rules c ll : LR2_rules c ll -> Forall (sf c) ll.
   Proof. intros [[|]|]; auto. Qed.
   
-  Hint Resolve rule_id_finite_t LR_rule_r_finite_t LR2_rule_l_finite_t.
+  Hint Resolve rule_id_finite_t LR_rule_r_finite_t LR2_rule_l_finite_t : core.
   
   Lemma LR2_rules_finite_t c : finite_t (LR2_rules c).
   Proof. unfold LR2_rules; repeat apply finite_t_cup; auto. Qed.
@@ -220,32 +221,35 @@ Section LR2.
 
   End LR2_proof_rect.
 
-  Notation Seq_contract := (fun s1 s2 : Seq =>
+  Let Seq_redundant (s1 s2 : Seq) := 
     match s1, s2 with
-      | (l1,c1),(l2,c2) => c1 = c2 /\ l1 c>> l2
-    end).
+      | (Δ,B),(Γ,A) => A = B /\ Γ ≻c Δ
+    end.
+
+  Infix "≺r" := Seq_redundant (at level 70, no associativity).
+
     
   (** This one is called Curry's lemma, that is height-preserving
       admissibility of contraction *)
+
+  (* Γ Δ Θ Σ α *)  
  
-  Lemma LR2_Curry n l1 l2 a : 
-         l1 c>> l2 -> LR2_bprovable n (l1 |-- a) -> LR2_bprovable n (l2 |-- a).
+  Lemma LR2_Curry n Γ Δ A B : 
+         Δ |-- B ≺r Γ |-- A 
+      -> LR2_bprovable n (Γ |-- A) 
+      -> LR2_bprovable n (Δ |-- B) .
   Proof.
-    intros H.
-    assert (Seq_contract (l1 |-- a) (l2 |-- a)) as G.
-      split; auto.
-    clear H; intros H; revert H G.
-    generalize (l1 |-- a) (l2 |-- a); clear l1 l2 a.
-    intros s1 s2 H; revert H s2.
+    generalize (Δ |-- B) (Γ |-- A); intros s1 s2.
+    clear Γ Δ A B; intros H1 H2; revert H2 s1 H1.
     
-    induction 1 as [ n a 
-                   | n ga a b H2 
-                   | n ga de th th' a b x H1 H2 H3 H4 ]
+    induction 1 as [ n A 
+                   | n Γ A B H2 
+                   | n Γ Δ Θ Σ A B x H1 H2 H3 H4 ]
       using LR2_bprovable_ind; intros s2 Hs2.
       
     (* The identity rule *)
     
-    assert (s2 = (a :: nil |-- a)).
+    assert (s2 = (A :: nil |-- A)).
       destruct s2 as (l & b).
       destruct Hs2 as (? & Hs2); subst b; f_equal.
       revert Hs2; apply list_contract_1.
@@ -253,33 +257,29 @@ Section LR2.
     
     (* The right implication rule *)
     
-    destruct s2 as (l & x).
+    destruct s2 as (Δ & x).
     destruct Hs2 as (? & Hs2); subst x.
-    apply LR2_b_imp_r.
-    apply H2; split; auto.
-    intros d.
-    generalize (Hs2 d).
-    simpl.
-    destruct (Form_eq_dec d a); 
-      unfold nat_contract; omega.
+    apply LR2_b_imp_r, H2; split; auto.
+    apply list_contract_cons; auto.
       
     (* The left implication rule *)
     
-    destruct s2 as (l & y).
+    destruct s2 as (Φ & y).
     destruct Hs2 as (? & Hs2); subst y.
-    destruct LR2c_contract_cons with (1 := H2) (l := l)
-      as (ga1 & de1 & th1 & G1 & G2 & G3 & G5).
+    destruct LR2c_contract_cons with (1 := H2) (Σ := Φ)
+      as (Γ' & Δ' & Θ' & G1 & G2 & G3 & G5).
     revert Hs2; apply list_contract_perm; auto.
-    apply LR2_b_imp_l with ga1 de1 th1 a b; auto.
+    apply LR2_b_imp_l with Γ' Δ' Θ' A B; auto.
     apply H4; split; auto.
     apply list_contract_cons; trivial.
+    apply H3; split; auto.
   Qed.
   
-  Corollary LR2_perm n l1 l2 a : 
-      l1 ~p l2 -> LR2_bprovable n (l1 |-- a) -> LR2_bprovable n (l2 |-- a).
+  Corollary LR2_perm n Γ Δ A : 
+      Γ ~p Δ -> LR2_bprovable n (Γ |-- A) -> LR2_bprovable n (Δ |-- A).
   Proof.
-    intros H; apply LR2_Curry; revert H.
-    apply perm_list_contract.
+    intros H; apply LR2_Curry.
+    split; auto; apply perm_list_contract; auto.
   Qed.
   
 End LR2.

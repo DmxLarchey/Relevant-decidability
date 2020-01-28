@@ -29,6 +29,8 @@ Section LR2_decider.
   (* Redundancy for LR2 is the reflexivce and transitive closure of the contraction rule *)
 
   Definition redund (y x : Seq) := list_contract Form_eq_dec (fst x) (fst y) /\ snd x = snd y.
+
+  Infix "≺r" := redund (at level 70, no associativity).
   
   (* We transport the af_t property from a product (Ramsey theorem) 
      using the very useful af_t_relmap ...
@@ -37,7 +39,7 @@ Section LR2_decider.
      instead and you will feel the difference ...
   *)
 
-  Theorem Kripke_LR2 ga A : af_t (redund <# LR_sf (ga |-- A) #>).
+  Theorem Kripke_LR2 ga A : af_t (redund restr LR_sf (ga |-- A)).
   Proof.
     generalize (ga |-- A); clear ga A; intro s.
     generalize (af_t_prod (af_t_list_contract Form_eq_dec (sf_Seq_finite_t s))
@@ -73,7 +75,7 @@ Section LR2_decider.
 
     unfold redund; intros (ga,a) (de,b) t; simpl.
     intros H1 (H2 & ?); subst b.
-    destruct (@LR2_Curry (tree_ht t) _ _ a H2) as (t' & Ht').
+    destruct (@LR2_Curry (tree_ht t) de ga a a) as (t' & Ht'); try tauto.
     exists t; split; auto; red; auto.
     exists t'; apply Ht'.
   Qed.

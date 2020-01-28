@@ -59,7 +59,7 @@ Section af_bar_t.
       intros H; apply af_bar_good_rec with (1 := H); auto.
     Qed.
     
-    Hint Resolve bar_good_af_t af_bar_good_t.
+    Hint Resolve bar_good_af_t af_bar_good_t : core.
     
     Theorem bar_t_af_t_eq R ll : (af_t (R lrlift ll) -> bar_t (good R) ll)
                                * (bar_t (good R) ll -> af_t (R lrlift ll)).

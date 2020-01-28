@@ -691,7 +691,7 @@ Section proofs.
       Otherwise the requirement would be too strong 
    *)
   
-  Hypothesis redund_af_t : forall s, af_t (redund <# sf s #>).
+  Hypothesis redund_af_t : forall s, af_t (redund restr sf s).
   
   Section Koenigs_lemma_replacement.
  

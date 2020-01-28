@@ -237,10 +237,3 @@ Section pigeon_rel.
   Qed.
 
 End pigeon_rel.
-
-Check pigeon_hole_rel.
-      
-    
-  
-  
-  

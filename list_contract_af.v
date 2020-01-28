@@ -31,6 +31,7 @@ Section af_contract.
   
   Notation occ := (@occ _ eqX_dec).
   Notation list_contract := (@list_contract _ eqX_dec).
+  Notation list_redund := (fun x y => list_contract y x).
 
   Fact af_t_nat_contract_list (ll : list X) : af_t (fun l m => forall d, In d ll -> nat_contract (occ d m) (occ d l)).
   Proof.
@@ -51,7 +52,7 @@ Section af_contract.
     rewrite <- H1, <- H2; auto.
   Qed.
   
-  Theorem af_t_list_contract P : finite_t P -> af_t ((fun x y => list_contract y x) <# Forall P #>).
+  Theorem af_t_list_contract P : finite_t P -> af_t (list_redund restr Forall P).
   Proof.
     intros (ll & Hll).
     generalize (af_t_nat_contract_list ll).

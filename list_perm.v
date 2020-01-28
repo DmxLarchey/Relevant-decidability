@@ -178,7 +178,7 @@ Section Permutation_tools.
     auto.
   Qed.
 
-  Hint Resolve Permutation_add_one.
+  Hint Resolve Permutation_add_one : core.
     
   Theorem Permutation_app_intro l1 l2 k r1 r2 : l1++r1 ~p l2++r2 -> l1++k++r1 ~p l2++k++r2.
   Proof. induction k; auto; simpl;intro; auto. Qed.

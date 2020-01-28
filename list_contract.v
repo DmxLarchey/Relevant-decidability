@@ -269,15 +269,16 @@ Section occ_list_repeat.
   
   Definition list_contract l1 l2 := forall d, nat_contract (occ d l1) (occ d l2).
   
-  Infix "cc>" := list_contract (at level 70, no associativity).
+  (* Infix "cc>" := list_contract (at level 70, no associativity). *)
+  Infix "≻c" := list_contract (at level 70, no associativity).
   
-  Fact list_contract_refl l : l cc> l.
+  Fact list_contract_refl l : l ≻c l.
   Proof. intros d; red; omega. Qed.
   
-  Fact list_contract_trans l m k : l cc> m -> m cc> k -> l cc> k.
+  Fact list_contract_trans l m k : l ≻c m -> m ≻c k -> l ≻c k.
   Proof. intros H1 H2 d; generalize (H1 d) (H2 d); unfold nat_contract; omega. Qed.
   
-  Fact list_contract_incl l m : l cc> m -> incl l m.
+  Fact list_contract_incl l m : l ≻c m -> incl l m.
   Proof.
     intros H d; generalize (H d).
     unfold nat_contract.
@@ -285,12 +286,12 @@ Section occ_list_repeat.
     omega.
   Qed.
 
-  Fact perm_list_contract l m : l ~p m -> l cc> m.
+  Fact perm_list_contract l m : l ~p m -> l ≻c m.
   Proof.
     intros H d; rewrite occ_perm with (1 := H); red; omega.
   Qed.
   
-  Fact list_contract_perm l1 m1 l2 m2 : l1 ~p m1 -> l2 ~p m2 -> l1 cc> l2 -> m1 cc> m2.
+  Fact list_contract_perm l1 m1 l2 m2 : l1 ~p m1 -> l2 ~p m2 -> l1 ≻c l2 -> m1 ≻c m2.
   Proof.
     intros H1 H2 H d.
     rewrite <- occ_perm with (1 := H1),
@@ -298,7 +299,7 @@ Section occ_list_repeat.
     apply H.
   Qed.
   
-  Fact list_contract_app l1 m1 l2 m2 : l1 cc> m1 -> l2 cc> m2 -> (l1++l2) cc> (m1++m2).
+  Fact list_contract_app l1 m1 l2 m2 : l1 ≻c m1 -> l2 ≻c m2 -> l1++l2 ≻c m1++m2.
   Proof.
     intros H1 H2 d.
     do 2 rewrite occ_app.
@@ -306,12 +307,12 @@ Section occ_list_repeat.
     unfold nat_contract; omega.
   Qed.
   
-  Fact list_contract_cons a l m : l cc> m -> a::l cc> a::m.
+  Fact list_contract_cons a l m : l ≻c m -> a::l ≻c a::m.
   Proof.
     apply list_contract_app with (1 := list_contract_refl (a::nil)).
   Qed.
   
-  Fact list_contract_length l1 l2 : l1 cc> l2 -> length l2 <= length l1.
+  Fact list_contract_length l1 l2 : l1 ≻c l2 -> length l2 <= length l1.
   Proof.
     intros H.
     apply length_occ.
@@ -319,7 +320,7 @@ Section occ_list_repeat.
     unfold nat_contract; omega.
   Qed.
   
-  Fact list_repeat_contract x m n : nat_contract m n <-> list_repeat x m cc> list_repeat x n.
+  Fact list_repeat_contract x m n : nat_contract m n <-> list_repeat x m ≻c list_repeat x n.
   Proof.
     split.
     intros H d.
@@ -332,7 +333,7 @@ Section occ_list_repeat.
 
   Fact list_repeat_contract_app x n m l : 
        nat_contract m n 
-    -> list_repeat x m ++ l cc> list_repeat x n ++ l.
+    -> list_repeat x m ++ l ≻c list_repeat x n ++ l.
   Proof.
     intros H; apply list_contract_app.
     apply list_repeat_contract; trivial.
@@ -340,20 +341,19 @@ Section occ_list_repeat.
   Qed.
   
   Fact list_contract_repeat_app a n l m : 
-       l cc> m 
-    -> list_repeat a n ++ l cc> list_repeat a n ++ m.
+       l ≻c m -> list_repeat a n ++ l ≻c list_repeat a n ++ m.
   Proof.
     apply list_contract_app, list_contract_refl.
   Qed.
 
-  Fact list_contract_nil l : nil cc> l -> l = nil.
+  Fact list_contract_nil l : nil ≻c l -> l = nil.
   Proof.
     intros H.
     apply list_contract_length in H.
     destruct l; simpl in H; auto; omega. 
   Qed.
   
-  Fact list_contract_nil_inv l : l cc> nil -> l = nil.
+  Fact list_contract_nil_inv l : l ≻c nil -> l = nil.
   Proof.
     intros H. 
     destruct l as [ | x l ]; auto.
@@ -362,7 +362,7 @@ Section occ_list_repeat.
   Qed.
   
   Fact list_contract_repeat a n l : 
-     list_repeat a n cc> l -> { p | l = list_repeat a p /\ p <= n }.
+     list_repeat a n ≻c l -> { p | l = list_repeat a p /\ p <= n }.
   Proof.
     intros H.
     destruct (occ_destruct a l) as (m & H1 & H2).
@@ -387,7 +387,7 @@ Section occ_list_repeat.
   Qed.
   
   Fact list_contract_repeat_S a n l : 
-     list_repeat a (S n) cc> l -> { p | l = list_repeat a (S p) /\ p <= n }.
+     list_repeat a (S n) ≻c l -> { p | l = list_repeat a (S p) /\ p <= n }.
   Proof.
     intros H.
     destruct list_contract_repeat with (1 := H)
@@ -396,7 +396,7 @@ Section occ_list_repeat.
     exists p; split; auto; omega.
   Qed.
 
-  Fact list_contract_1 a l : a::nil cc> l -> l = a::nil.
+  Fact list_contract_1 a l : a::nil ≻c l -> l = a::nil.
   Proof.
     intros H.
     destruct list_contract_repeat_S with (n := 0) (1 := H) as (p & H1 & H2).
@@ -412,17 +412,19 @@ Section occ_list_repeat.
   Local Fact leq_1_2_inv a : 1 <= a <= 2 -> a = 1 \/ a = 2.
   Proof. omega. Qed.
   
-  Fact list_contract_2 a l : a::a::nil cc> l -> l = a::nil \/ l = a::a::nil.
+  Fact list_contract_2 a l : a::a::nil ≻c l -> l = a::nil \/ l = a::a::nil.
   Proof.
     intros H.
     destruct list_contract_repeat_S with (n := 1) (1 := H) as (p & H1 & H2).
     apply leq_1_inv in H2; destruct H2; subst; tauto.
   Qed.
+
+  (* If l and m have an empty intersection ... *)
   
   Fact list_contract_app_inv l m k :
         (forall d, occ d l = 0 \/ occ d m = 0)
-     -> l ++ m cc> k
-     -> { p : _ & { q | k ~p p ++ q /\ l cc> p /\ m cc> q } }.
+     -> l++m ≻c k
+     -> { p : _ & { q | k ~p p ++ q /\ l ≻c p /\ m ≻c q } }.
   Proof.
     revert k; induction l as [ l IHl ] using list_length_rect; intros k Hlm Hk.
     destruct (occ_destruct_any l) as [ (x & n & l' & H1 & H2) | Hl ].
@@ -487,11 +489,11 @@ Section occ_list_repeat.
   
   Fact list_contract_repeat_inv a n l m :
         occ a l = 0
-     -> list_repeat a (S n) ++ l cc> m
+     -> list_repeat a (S n) ++ l ≻c m
      -> { p : _ & { k | p <= n 
                      /\ occ a k = 0 
                      /\ m ~p list_repeat a (S p) ++ k 
-                     /\ l cc> k } }.
+                     /\ l ≻c k } }.
   Proof.
     intros H1 H2.
     apply list_contract_app_inv in H2.
@@ -506,7 +508,7 @@ Section occ_list_repeat.
     rewrite occ_repeat_neq; auto.
   Qed.
 
-  Fact list_contract_one_perm x l m : x::l cc> m -> { m' | m ~p x::m' }.
+  Fact list_contract_one_perm x l m : x::l ≻c m -> { m' | m ~p x::m' }.
   Proof.
     intros H.
     destruct (occ_destruct x m) as (k & H6 & H7).
@@ -529,7 +531,7 @@ Section occ_list_repeat.
   
     Let list_contract_isolate_rec n l m : 
          length l < n 
-      -> l cc> m 
+      -> l ≻c m 
       -> ( l ~p m ) + { x : _ & { n : _ & { p : _ & { l' : _ & { m' | 
                                      1 <= p < n 
                                   /\ l ~p list_repeat x n ++ l'
@@ -622,20 +624,20 @@ Section occ_list_repeat.
     Qed.
  
     Lemma list_contract_isolate l m : 
-       l cc> m 
+       l ≻c m 
     -> ( l ~p m ) + { x : _ & { n : _ & { p : _ & { l' : _ & { m' | 
                                      1 <= p < n 
                                   /\ l ~p list_repeat x n ++ l'
                                   /\ m ~p list_repeat x p ++ m'
                                   /\ occ x l' = 0
                                   /\ occ x m' = 0
-                                  /\ l' cc> m' } } } } }.
+                                  /\ l' ≻c m' } } } } }.
     Proof.
       apply list_contract_isolate_rec with (n := S (length l)); auto.
     Qed.
 
     Lemma list_contract_isolate_one l m :
-       l cc> m -> (l ~p m) + { a : _ & { k | l ~p a::a::k /\ a::k cc> m } }.
+       l ≻c m -> (l ~p m) + { a : _ & { k | l ~p a::a::k /\ a::k ≻c m } }.
     Proof.
       intros H.
       apply list_contract_isolate in H.
@@ -663,7 +665,7 @@ Section occ_list_repeat.
               (HP1 : forall a l, P (a::a::l) (a::l))
               (HP2 : forall l m k, P l m -> P m k -> P l k).
     
-    Theorem list_contract_one_rect l m : l cc> m -> P l m.
+    Theorem list_contract_one_rect l m : l ≻c m -> P l m.
     Proof.
       revert m.
       induction l as [ l IHl ] using list_length_rect; intros m H.
@@ -697,7 +699,7 @@ Section occ_list_repeat.
                                        
     Hypothesis HP2 : forall l m k, P l m -> P m k -> P l k.
     
-    Theorem list_contract_rect l m : l cc> m -> P l m.
+    Theorem list_contract_rect l m : l ≻c m -> P l m.
     Proof.
       revert m.
       induction l as [ l IHl ] using list_length_rect; intros m H.
