@@ -25,11 +25,7 @@
 
 ### How do I get a set up? ###
 
-* This repository was initially designed under `Coq 8.6.1`. However, due to changes in 
-  more recent versions of Coq, e.g. the `Focus` command being marked deprecated, 
-  the code has been updated and should now be compiled starting with `Coq 8.8`.
-
-* Compile it with `make all`
+* Using `Coq 8.8+` (see below), compile this repository with `make all`
   (or `make -j 16 all` if you have 16 CPU cores available)
   and you can then review the proofs using your favorite Coq IDE.
   The file you want to review first in [`logical_deciders.v`](logical_deciders.v).
@@ -38,3 +34,8 @@
   versions of Coq: `Coq 8.8.2`, `Coq 8.9.1` and `Coq 8.10.1`.
   However, cleaning up with `make clean` might be necessary 
   when switching to another version of Coq.
+
+* This repository was initially designed under `Coq 8.6.1`. However, due to changes in 
+  more recent versions of Coq, e.g. the `Focus` command being marked deprecated, 
+  the code has been updated and should now be compiled starting with `Coq 8.8`.
+
