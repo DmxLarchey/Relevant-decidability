@@ -16,12 +16,16 @@
   by [Dominique Larchey-Wendling](http://www.loria.fr/~larchey).
   The paper has been presented at IJCAR 2018.
   A [*revised and extended version*](http://www.loria.fr/~larchey/papers/JAR-2019.pdf) 
-  of this paper is going to appear in the _Journal of Automated Reasonning_.
+  of this paper is going to appear in the _Journal of Automated Reasonning (JAR)_.
 
 * The Coq mechanization of the decidability proof for Implicational Relevance 
   logic is purely constructive, replacing Kripke/Dickson's lemma and
   König's lemma by inductive counterparts based on the notion of
   Almost Full relations.
+
+* The code in sync the IJCAR publication is tagged [`v1.0`](tree/v1.0).
+
+* The code in sync with the JAR publication is tagged [`v2.0`](/tree/v2.0).
 
 ### How do I get a set up? ###
 
