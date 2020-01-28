@@ -23,9 +23,9 @@
   König's lemma by inductive counterparts based on the notion of
   Almost Full relations.
 
-* The code in sync the IJCAR publication is tagged [`v1.0`](tree/v1.0).
+* The code in sync the IJCAR publication is tagged [`v1.0`](https://github.com/DmxLarchey/Relevant-decidability/tree/v1.0).
 
-* The code in sync with the JAR publication is tagged [`v2.0`](/tree/v2.0).
+* The code in sync with the JAR publication is tagged [`v2.0`](https://github.com/DmxLarchey/Relevant-decidability/tree/v2.0).
 
 ### How do I get a set up? ###
 
