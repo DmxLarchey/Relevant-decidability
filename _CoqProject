@@ -39,6 +39,7 @@ relevant_contract.v
 relevant_equiv.v
 relevant_HR.v
 relevant_LR1.v
+relevant_disj_LR1.v
 relevant_LR2_dec.v
 relevant_LR2.v
 rel_utils.v

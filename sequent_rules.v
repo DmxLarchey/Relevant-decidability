@@ -256,7 +256,7 @@ Section Right_implication_rule.
   
   Fact LR_rule_r_finite : finitely_represents LR_rule_r LR_rule_r_map.
   Proof.
-    intros (ga,[ v | a b ]).
+    intros (ga,[ v | op a b ]).
     
     exists nil.
     intros h; split.
@@ -291,6 +291,90 @@ Section Right_implication_rule.
   Proof. apply rule_finite_t with (f := LR_rule_r_map); auto. Qed.
   
 End Right_implication_rule.
+
+Section Right_disjunction_rule.
+  
+  (** Right implication rule for R sequent systems 
+  
+            ga |- A or B
+          -------------- [r]
+            ga |- A∨B 
+
+  *)
+
+  Inductive LR_disj_r : Seq -> list Seq -> Prop :=
+    | in_LR_disj_r : forall (s : bool) th a b, LR_disj_r (th    |-- a∨b) 
+                                           ((th |-- if s then a else b) 
+                                           :: nil ). 
+                                         
+  Fact LR_disj_r_inv c ll : LR_disj_r c ll -> exists (s : bool) ga a b,
+                                        c  = (ga |-- a∨b)
+                                     /\ ll = ((ga |-- if s then a else b) :: nil).
+  Proof. induction 1 as [ s ga a b ]; exists s, ga, a, b; auto. Qed.
+  
+  Fact sf_LR_disj_r c ll : LR_disj_r c ll -> Forall (sf c) ll.
+  Proof.
+    induction 1 as [ s ga a b ]; constructor.
+    2: constructor.
+    intros x [ (y & H1 & H2) | Hx ].
+    left; exists y; auto.
+    right; right; destruct s; tauto.
+  Qed.
+  
+  Definition LR_disj_r_inst := (bool * list Form * Form * Form)%type.
+  
+  Definition LR_disj_r_map : LR_disj_r_inst -> Seq * list Seq.
+  Proof.
+    intros (((s,ga),a),b).
+    exact ((ga |-- a ∨ b), ((ga |-- if s then a else b) :: nil) ).
+  Defined.
+  
+  Fact LR_disj_r_map_prop : soundly_represents LR_disj_r LR_disj_r_map.
+  Proof. intros (((s,ga),a),b); simpl; constructor. Qed.
+  
+  Fact LR_disj_r_finite : finitely_represents LR_disj_r LR_disj_r_map.
+  Proof.
+    intros (ga,[ v | op a b ]).
+    
+    exists nil.
+    intros h; split.
+    intros H.
+    apply LR_disj_r_inv in H.
+    destruct H as (? & ? & ? & ? & ? & _); discriminate.
+    intros ( ? & _ & [] ).
+    
+    exists ( (((true,ga),a),b) :: (((false,ga),a),b) :: nil ).
+    intros h; split.
+    intros H.
+    apply LR_disj_r_inv in H.
+    destruct H as (s & th & u & v & H1 & H2).
+    inversion H1; subst th u v h.
+    destruct s.
+      exists (((true,ga),a),b); simpl; auto.
+      exists (((false,ga),a),b); simpl; auto.
+    intros ( (((s,th),u),v) & H1 & [ H2 | [ H2 | [] ] ] ).
+    inversion H1.
+    inversion H2. 
+    subst th u v h.
+    constructor 1 with (s := true).
+    inversion H1.
+    inversion H2. 
+    subst th u v h.
+    constructor 1 with (s := false).
+  Qed.
+  
+  Hint Resolve LR_disj_r_map_prop LR_disj_r_finite : core.
+  
+  Fact LR_disj_r_reif c hs : LR_disj_r c hs -> { i | LR_disj_r_map i = (c,hs) }.
+  Proof. intros ?; apply rule_reif with (r := LR_disj_r); auto. Qed.
+  
+  Fact LR_disj_r_dec c hs : { LR_disj_r c hs } + { ~ LR_disj_r c hs }.
+  Proof. apply rule_dec with (f := LR_disj_r_map); auto. Qed.
+  
+  Fact LR_disj_r_finite_t c : finite_t (LR_disj_r c).
+  Proof. apply rule_finite_t with (f := LR_disj_r_map); auto. Qed.
+  
+End Right_disjunction_rule.
 
 Section Left_implication_rule_LR1.
   
@@ -334,13 +418,12 @@ Section Left_implication_rule_LR1.
     intros (th,x).
     generalize (pick_split_finite_t th); intros (l1 & Hl1).
     set (ll := flat_map (fun u => match u with 
-                          | (£ _,_) => nil 
                           | (a %> b,(ga,de)) => (((((ga,de),th),a),b),x) :: nil
+                          | _ => nil
                         end) l1).
     assert (forall u, In u ll -> match u with (((((ga,de),th),a),b),x) => th ~p (a %> b) :: ga ++ de end) as Hll.
       intros (((((ga,de),th'),a),b),x'); unfold ll; rewrite in_flat_map.
-      intros (([ | a' b' ],(p,q)) & H1 & H2).
-      destruct H2.
+      intros (([ | [] a' b' ],(p,q)) & H1 & H2);simpl in *; try tauto.
       destruct H2 as [ E | [] ].
       inversion E; subst p q th' a' b' x'.
       apply Hl1 in H1; auto.
@@ -378,6 +461,93 @@ Section Left_implication_rule_LR1.
   Proof. apply rule_finite_t with (f := LR_rule_l_map); auto. Qed.
   
 End Left_implication_rule_LR1.
+
+Section Left_disjunction_rule_LR1.
+  
+  (** Left implication rule for R sequent systems 
+      This is the "usual" rule that does not absorb contraction 
+      
+             A,ga |- C   B,ga |- C
+           ------------------------- [l]
+                 A ∨ B,ga |- C
+      
+  *)
+
+  Inductive LR_disj_l : Seq -> list Seq -> Prop :=
+    | in_LR_disj_l : forall ga th a b x, 
+                                 th ~p a ∨ b :: ga
+                              -> LR_disj_l (th   |-- x)
+                                        ( (a::ga |-- x)
+                                       :: (b::ga |-- x)
+                                       :: nil ).
+
+  Fact LR_disj_l_inv c ll : LR_disj_l c ll -> exists ga th a b x,
+                                        c = (th |-- x)
+                                     /\ ll = ( (a::ga |-- x) :: (b :: ga |-- x) :: nil )
+                                     /\ th ~p a∨b :: ga.
+  Proof. induction 1 as [ ga th a b x ]; exists ga, th, a, b, x; auto. Qed.
+
+  Definition LR_disj_l_inst := { c : list Form * list Form * Form * Form * Form 
+                                   | match c with ((((ga,th),a),b),x) => th ~p a∨b :: ga end }%type.
+  
+  Definition LR_disj_l_map : LR_disj_l_inst -> Seq * list Seq.
+  Proof.
+    intros ( ((((ga,th),a),b),x) & _ ).
+    exact (th |-- x , ( (a::ga |-- x) :: (b :: ga |-- x) :: nil ) ).
+  Defined.
+  
+  Fact LR_disj_l_map_prop : soundly_represents LR_disj_l LR_disj_l_map.
+  Proof. intros (((((ga,th),a),b),x) & H); simpl; constructor; auto. Qed.
+
+  Fact LR_disj_l_finite : finitely_represents LR_disj_l LR_disj_l_map.
+  Proof.
+    intros (th,x).
+    generalize (pick_finite_t th); intros (l1 & Hl1).
+    set (ll := flat_map (fun u => match u with 
+                          | (a∨b,ga) => ((((ga,th),a),b),x) :: nil
+                          | _ => nil
+                        end) l1).
+    assert (forall u, In u ll -> match u with ((((ga,th),a),b),x) => th ~p a∨b :: ga end) as Hll.
+      intros ((((ga,th'),a),b),x'); unfold ll; rewrite in_flat_map.
+      intros (([ | [] a' b' ],p) & H1 & H2); simpl in *; try tauto.
+      destruct H2 as [ E | [] ].
+      inversion E; subst p a' b' x' th'.
+      apply Hl1 in H1; auto.
+      
+    exists (list_Forall_sig _ _ Hll).
+    intros h; split.
+    
+    intros H.
+    apply LR_disj_l_inv in H.
+    destruct H as (ga & th' & a & b & x' & E & H1 & H2).
+    inversion E; subst th' x' h.
+    assert (In ((((ga,th),a),b),x) ll) as H3.
+      unfold ll; apply in_flat_map.
+      exists (a∨b, ga); split; simpl; auto.
+      apply Hl1; auto.
+    generalize (list_Forall_sig_In_refl _ _ Hll _ H3).
+    intros H4.
+    match goal with [ H : In ?x _ |- _ ] => exists x end; split; auto.
+    
+    intros ((((((ga,th'),a),b),x') & H) & H1 & _).
+    simpl in H1.
+    inversion H1; subst th' x' h.
+    constructor; auto.
+  Qed.
+  
+  Hint Resolve LR_disj_l_map_prop LR_disj_l_finite : core.
+ 
+  Fact LR_disj_l_reif c hs : LR_disj_l c hs -> { i | LR_disj_l_map i = (c,hs) }.
+  Proof. intros ?; apply rule_reif with (r := LR_disj_l); auto. Qed.
+  
+  Fact LR_disj_l_dec c hs : { LR_disj_l c hs } + { ~ LR_disj_l c hs }.
+  Proof. apply rule_dec with (f := LR_disj_l_map); auto. Qed.
+  
+  Fact LR_disj_l_finite_t c : finite_t (LR_disj_l c).
+  Proof. apply rule_finite_t with (f := LR_disj_l_map); auto. Qed.
+  
+End Left_disjunction_rule_LR1.
+
 
 Section Left_implication_rule_LI2.
   
@@ -457,13 +627,12 @@ Section Left_implication_rule_LI2.
     intros (th,x).
     generalize (pick_finite_t th); intros (l1 & Hl1).
     set (ll := flat_map (fun u => match u with 
-                          | (£ _,_) => nil 
                           | (a %> b,ga) => ((((ga,th),a),b),x) :: nil
+                          | _ => nil
                         end) l1).
     assert (forall u, In u ll -> match u with ((((ga,th),a),b),x) => th ~p (a %> b) :: ga end) as Hll.
       intros ((((ga,th'),a),b),x'); unfold ll; rewrite in_flat_map.
-      intros (([ | a' b' ],p) & H1 & H2).
-      destruct H2.
+      intros (([ | [] a' b' ],p) & H1 & H2); simpl in *; try tauto.
       destruct H2 as [ E | [] ].
       inversion E; subst p th' a' b' x'.
       apply Hl1 in H1; auto.
@@ -834,23 +1003,22 @@ Section Left_implication_rule_LR2.
     intros (th,x).
     generalize (pick_finite_t th); intros (l1 & Hl1).
     set (ll := flat_map (fun u => match u with 
-                          | (£ _,_) => nil 
                           | (a %> b,th') => let mm := proj1_sig (LR2c_finite_t Form_eq_dec (a %> b) th')
-                                            in map (fun d : _ * _=> let (ga,de) := d in ((((((ga,de),th),th'),a),b),x)) mm  
+                                            in map (fun d : _ * _=> let (ga,de) := d in ((((((ga,de),th),th'),a),b),x)) mm
+                          | _ => nil
                         end) l1).
     assert (forall u, In u ll -> match u with ((((((ga,de),th),th'),a),b),x) 
                                            => th ~p (a %> b) :: th'
                                            /\ LR2c (a %> b) ga de th' 
                                  end) as Hll.
     { intros ((((((ga,de),th'),th''),a),b),x'); unfold ll; rewrite in_flat_map.
-      intros (([ | a' b' ],p) & H1 & H2).
-      + destruct H2.
-      + apply in_map_iff in H2.
-        destruct H2 as ((ga',de') & E & H3).
-        inversion E; subst ga' de' th' th'' a' b' x'.
-        apply (proj2_sig (LR2c_finite_t Form_eq_dec (a %> b) p)) in H3.
-        apply Hl1 in H1.
-        split; auto. }
+      intros (([ | [] a' b' ],p) & H1 & H2); simpl in *; try tauto.
+      apply in_map_iff in H2.
+      destruct H2 as ((ga',de') & E & H3).
+      inversion E; subst ga' de' th' th'' a' b' x'.
+      apply (proj2_sig (LR2c_finite_t Form_eq_dec (a %> b) p)) in H3.
+      apply Hl1 in H1.
+      split; auto. }
     exists (list_Forall_sig _ _ Hll).
     intros h; split.
     + intros H.
@@ -932,6 +1100,24 @@ Section Usable_rules.
     revert H2; apply bproof_root.
     constructor.
   Qed.
+
+  Fact LR_rules_disj_r rules :
+         LR_disj_r inc2 rules
+      -> forall n (s : bool) ga a b t,  
+               bproof rules n (ga |-- if s then a else b) t 
+            -> bproof rules (S n) (ga |-- a ∨ b) (in_tree (ga |-- a ∨ b) (t::nil)).
+  Proof.
+    intros H n s ga a b t H2.
+    rewrite bproof_S; repeat split.
+    apply H.
+    unfold proof_sub; simpl.
+    destruct H2 as ((H2 & H3) & H4).
+    rewrite H3.
+    constructor; auto.
+    constructor.
+    revert H2; apply bproof_root.
+    constructor.
+  Qed.
   
   Fact LR_rules_imp_l rules :
          LR_rule_l inc2 rules
@@ -948,6 +1134,28 @@ Section Usable_rules.
     destruct H3 as ((_ & H3) & _); rewrite H3.
     destruct H4 as ((_ & H4) & _); rewrite H4.
     apply in_LR_l with (1 := H1); auto.
+    constructor.
+    revert H3; apply bproof_root.
+    constructor.
+    revert H4; apply bproof_root.
+    constructor.
+  Qed.
+
+  Fact LR_rules_disj_l rules :
+         LR_disj_l inc2 rules
+      -> forall n ga th a b x ta tx, 
+                                 th ~p (a∨b) :: ga
+                              -> bproof rules n (a::ga  |-- x) ta
+                              -> bproof rules n (b::ga  |-- x) tx
+                              -> bproof rules (S n) (th |-- x) (in_tree (th |-- x) (ta::tx::nil)).
+  Proof.
+    intros H0 n ga th a b x ta tx H1 H3 H4.
+    rewrite bproof_S; repeat split.
+    unfold proof_sub; simpl.
+    apply H0.
+    destruct H3 as ((_ & H3) & _); rewrite H3.
+    destruct H4 as ((_ & H4) & _); rewrite H4.
+    apply in_LR_disj_l with (1 := H1); auto.
     constructor.
     revert H3; apply bproof_root.
     constructor.

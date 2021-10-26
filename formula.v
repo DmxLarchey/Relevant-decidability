@@ -15,9 +15,11 @@ Set Implicit Arguments.
 
 Inductive Var : Set := in_Var : nat -> Var.
 
+Inductive Bin_op := Bin_imp | Bin_disj.
+
 Inductive Form : Set := 
   | Form_var : Var -> Form
-  | Form_op : Form -> Form -> Form.
+  | Form_op : Bin_op -> Form -> Form -> Form.
   
 Fact Var_eq_dec (x y : Var) : { x = y } + { x <> y }.
 Proof.
@@ -28,17 +30,19 @@ Qed.
 Fact Form_eq_dec (x y : Form) : { x = y } + { x <> y }.
 Proof.
   decide equality.
-  apply Var_eq_dec.
+  + apply Var_eq_dec.
+  + decide equality.
 Qed.
 
-Infix "%>" := Form_op (at level 49, right associativity).
-Infix "⊃" := Form_op (at level 49, right associativity).
+Infix "%>" := (Form_op Bin_imp) (at level 45, right associativity).
+Infix "⊃" := (Form_op Bin_imp) (at level 45, right associativity).
+Notation "x ∨ y" := (Form_op Bin_disj x y) (at level 44, left associativity, format "x ∨ y").
 Notation "'£' x" := (Form_var x) (at level 49).
   
 Fixpoint sf_Form f := 
   match f with 
     | £ x    => fun y => y = £ x
-    | a %> b => fun y => y = a %> b \/ sf_Form a y \/ sf_Form b y
+    | Form_op _ a b => fun y => y = f \/ sf_Form a y \/ sf_Form b y
   end.
 
 Fact sf_Form_refl f : sf_Form f f.
@@ -48,19 +52,17 @@ Qed.
 
 Fact sf_Form_finite_t f : finite_t (sf_Form f).
 Proof.
-  induction f as [ v | a Ha b Hb ].
-  exists (£ v :: nil); simpl; intros; split; auto.
-  intros [ | [] ]; auto.
-  generalize (finite_t_cup Ha Hb).
-  intros (ll & Hll).
-  exists ((a %> b) :: ll).
-  intros x; split.
-  intros [ ? | ? ].
-  subst; left; auto.
-  right; apply Hll; auto.
-  intros [ ? | ? ].
-  left; auto.
-  right; apply Hll; auto.
+  induction f as [ v | o a Ha b Hb ].
+  + exists (£ v :: nil); simpl; intros; split; auto.
+    intros [ | [] ]; auto.
+  + generalize (finite_t_cup Ha Hb).
+    intros (ll & Hll).
+    exists ((Form_op o a b) :: ll).
+    intros x; split.
+    * intros [ <- | ? ]; simpl; auto.
+      right; apply Hll; auto.
+    * intros [ -> | ? ]; simpl; auto.
+      right; apply Hll; auto.
 Qed.
 
 Reserved Notation "x '%%>' y" (at level 49, right associativity).
