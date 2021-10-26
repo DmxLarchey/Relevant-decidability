@@ -12,7 +12,7 @@ Require Import Arith Omega List Permutation.
 Require Import tacs rel_utils list_utils.
 
 Require Import formula sequent_rules.
-Require Import relevant_LR1 mini_LI1.
+Require Import relevant_LR1 mini_LI1 relevant_disj_LR1.
 
 Set Implicit Arguments.
 
@@ -388,6 +388,9 @@ Section Relational_phase_semantics.
   Proposition lub_in_l A B   : A inc1 A lub B.             Proof. apply inc1_trans with (2 := cl_increase _); tauto. Qed.
   Proposition lub_in_r A B   : B inc1 A lub B.             Proof. apply inc1_trans with (2 := cl_increase _); tauto. Qed.
 
+  Proposition lub_mono A A' B B' : A inc1 A' -> B inc1 B' -> A lub B inc1 A' lub B'.
+  Proof. intros ? ?; apply lub_out; auto. Qed.
+
   Notation "x '**' y " := (cl (x ø y)) (at level 59).
 
   Proposition closed_times A B : closed (A ** B).
@@ -514,12 +517,13 @@ Section Relational_phase_semantics.
     match f with
       | £ x    => v x
       | a %> b => [[a]] -ø [[b]]
+      | a ∨ b  => [[a]] lub [[b]]
     end
   where "[[ a ]]" := (Form_sem a).
   
   Fact cl_Form_sem f : cl ([[f]]) inc1 [[f]].
   Proof.
-    induction f; simpl; auto.
+    induction f as [ | [] ]; simpl; auto.
   Qed.
   
   Fixpoint FList_sem ll :=
@@ -597,6 +601,52 @@ Section Relational_phase_semantics.
     apply times_monotone; auto.
     apply adjunction_2; auto.
     
+    apply inc1_trans with (2 := IH),
+          inc1_trans with (1 := proj1 (FList_sem_perm H1)).
+    apply inc1_trans with (2 := @times_associative_1 _ _ _).
+    simpl; apply times_monotone; auto.
+    apply cl_contract.
+    
+    apply inc1_trans with (2 := IH2),
+          inc1_trans with (1 := proj1 (FList_sem_perm H1)),
+          inc1_trans with (1 := proj1 (FList_sem_app _ _)).
+    apply times_monotone; auto.
+  Qed.
+
+  Theorem sem_LDR1_sound : forall s, LDR1_provable s -> [|fst s|] inc1 [[snd s]].
+  Proof.
+    induction 1 as [ A 
+                   | ga A B IH 
+                   | ga de th A B C H1 IH1 IH2 
+                   | s ga A B IH
+                   | ga th A B C H1 IH1 IH2
+                   | ga de A B H1 IH 
+                   | ga de th A B H1 IH1 IH2 ] using LDR1_provable_ind; simpl in * |- *.
+ 
+    apply inc1_trans with (1 := @times_commute_1 _ _), unit_neutral_1; auto.
+    
+    apply adjunction_1; auto.
+    
+    apply inc1_trans with (1 := proj1 (FList_sem_perm H1)),
+          inc1_trans with (2 := IH2).
+    simpl.
+    apply inc1_trans with ([[A]] -ø[[B]] ** ([|ga|] ** [|de|])).
+    apply times_congruence; auto.
+    apply eq1_sym, FList_sem_app.
+    apply inc1_trans with (1 := @times_associative_2 _ _ _).
+    apply times_monotone; auto.
+    apply inc1_trans with ([[A]] -ø[[B]] ** [[A]]).
+    apply times_monotone; auto.
+    apply adjunction_2; auto.
+
+    apply inc1_trans with (1 := IH).
+    destruct s; auto.
+
+    apply inc1_trans with (1 := proj1 (FList_sem_perm H1)).
+    simpl.
+    apply inc1_trans with (1 := @times_lub_distrib_l _ _ _).
+    apply lub_out; auto.
+
     apply inc1_trans with (2 := IH),
           inc1_trans with (1 := proj1 (FList_sem_perm H1)).
     apply inc1_trans with (2 := @times_associative_1 _ _ _).
@@ -772,29 +822,39 @@ Section Cut_Adm.
     rewrite <- app_nil_end.
     apply HP_weak.
   Qed.
-  
+
   Local Definition dc a ga := ga |-- a.
+
+  Local Fact dc_closed a : cl (dc a) inc1 dc a.
+  Proof.
+    intros th Hth.
+    apply (Hth nil a); auto.
+  Qed.
+
+  Hint Resolve dc_closed : core. 
   
   Local Definition v x := dc (£ x).
   
   Local Fact Hv x : cl (v x) inc1 v x.
-  Proof.
-    intros ga Hga.
-    apply (Hga nil).
-    simpl; auto.
-  Qed.
+  Proof. apply dc_closed. Qed.
+
+  Hint Resolve cl_increase cl_mono cl_idem cl_stable_l Hv dc_closed : core.
   
   Local Definition cl_LR1_sound := @sem_LR1_sound _ _ cl_increase cl_mono cl_idem comp 
                                     _ cl_comm cl_stable_l cl_neutral_1 cl_neutral_2 cl_assoc 
                                     _ Hv cl_cntr.
-  
+
+  Local Definition cl_LDR1_sound := @sem_LDR1_sound _ _ cl_increase cl_mono cl_idem comp 
+                                    _ cl_comm cl_stable_l cl_neutral_1 cl_neutral_2 cl_assoc 
+                                    _ Hv cl_cntr.
+
   Local Definition cl_LI1_sound := @sem_LI1_sound _ _ cl_increase cl_mono cl_idem comp 
                                       _ cl_comm cl_stable_l cl_neutral_1 cl_neutral_2 cl_assoc 
                                       _ Hv cl_weak cl_cntr.
                                     
   Hypothesis HP_id : forall x, x :: nil |-- x.
-  
-  Local Fact rule_id x : Form_sem comp v (£ x) (£ x::nil).
+
+  Local Fact rule_id x : Form_sem cl comp v (£ x) (£ x::nil).
   Proof. simpl; apply HP_id. Qed.
   
   Notation sg := (@eq _).
@@ -824,15 +884,40 @@ Section Cut_Adm.
     generalize (H _ eq_refl).
     apply HP_perm, Permutation_app_comm.
   Qed.
+
+  Hypothesis HP_disj_r : forall (s : bool) ga a b, ga |-- (if s then a else b) -> ga |-- a ∨ b.
   
-  Hint Resolve cl_increase cl_mono cl_idem cl_stable_l Hv : core.
+  Local Fact disj_r A B : cl (dc A cup1 dc B) inc1 dc (A ∨ B).
+  Proof.
+    apply cl_closed; auto.
+    apply cl_mono; auto.
+    intros th [ Hth | Hth ].
+    + apply HP_disj_r with true, Hth.
+    + apply HP_disj_r with false, Hth.
+  Qed.
+
+  Hypothesis HP_disj_l : forall ga a b c, a::ga |-- c -> b::ga |-- c -> a∨b::ga |-- c.
   
+  Local Fact disj_l A B : cl (sg (A :: nil) cup1 sg (B :: nil)) (A∨B :: nil).
+  Proof.
+    intros ga C Hga.
+    apply HP_perm with (A∨B::ga).
+    apply perm_trans with (2 := Permutation_app_comm _ _); auto.
+    apply HP_disj_l.
+    + apply HP_perm with (ga++A::nil).
+      apply perm_trans with (1 := Permutation_app_comm _ _); auto.
+      apply Hga; simpl; auto.
+    +  apply HP_perm with (ga++B::nil).
+      apply perm_trans with (1 := Permutation_app_comm _ _); auto.
+      apply Hga; simpl; auto.
+  Qed.
+
   Local Fact mw_mono (X Y X' Y' : _ -> Prop) : X inc1 X' -> Y inc1 Y' -> X' -ø Y inc1 X -ø Y'.
   Proof.
     apply magicwand_monotone; auto.
   Qed.
   
-  Local Fact cl_sem A : cl (Form_sem comp v A) inc1 Form_sem comp v A.
+  Local Fact cl_sem A : cl (Form_sem cl comp v A) inc1 Form_sem cl comp v A.
   Proof.
     apply cl_Form_sem; eauto.
   Qed.
@@ -842,10 +927,10 @@ Section Cut_Adm.
     apply cl_closed; eauto.
   Qed.
    
-  Local Lemma cl_Okada A : Form_sem comp v A (A::nil) 
-                        /\ Form_sem comp v A inc1 fun ga => ga |-- A.
+  Local Lemma cl_Okada A : Form_sem cl comp v A (A::nil) 
+                        /\ Form_sem cl comp v A inc1 fun ga => ga |-- A.
   Proof.
-    induction A as [ x | A [ HA1 HA2 ] B [ HB1 HB2 ] ]; simpl; split.
+    induction A as [ x | [] A [ HA1 HA2 ] B [ HB1 HB2 ] ]; simpl; split.
     
     apply rule_id.
     intros ga; auto.
@@ -861,6 +946,18 @@ Section Cut_Adm.
     revert Hth.
     revert th; apply mw_mono; auto.
     intros ? []; auto.
+
+    generalize (@disj_l A B).
+    apply lub_mono; auto.
+    apply cl_mono.
+    intros ? <-; auto.
+    intros ? <-; auto.
+
+    intros th Hth.
+    apply (@disj_r A B).
+    revert Hth.
+    apply lub_mono; auto.
+    apply cl_mono.
   Qed.
   
   Local Lemma cl_Okada_ctx ga : FList_sem cl comp e v ga ga.
@@ -874,42 +971,21 @@ Section Cut_Adm.
 
 End Cut_Adm.
 
-Local Hint Resolve LR1_cf_provable_perm 
-                   LR1_cf_provable_contract
-                   LR1_cf_provable_id LR1_cf_provable_r : core.
+Local Hint Resolve LDR1_cf_provable_perm 
+                   LDR1_cf_provable_contract
+                   LDR1_cf_provable_id LDR1_cf_provable_r : core.
 
-Theorem LR1_cut_admissibility : LR1_provable inc1 LR1_cf_provable.
+Theorem LDR1_cut_admissibility : LDR1_provable inc1 LDR1_cf_provable.
 Proof.
   intros (ga,A) H.
-  apply cl_Okada with (P := fun ga a => LR1_cf_provable (ga,a)); auto.
-  apply LR1_cf_provable_perm.
-  intros ? ? ? ? ?; apply LR1_cf_provable_l; auto.
-  
-  apply cl_LR1_sound with (3 := H); simpl; auto.
-  apply LR1_cf_provable_perm.
-  apply LR1_cf_provable_contract.
-  apply cl_Okada_ctx; auto.
-  apply LR1_cf_provable_perm.
-  intros ? ? ? ? ?; apply LR1_cf_provable_l; auto.
+  apply cl_Okada with (P := fun ga a => LDR1_cf_provable (ga,a)); auto.
+  + apply LDR1_cf_provable_perm.
+  + intros ? ? ? ? ?; apply LDR1_cf_provable_l; auto.
+  + intros ? ? ? ?; apply LDR1_cf_provable_disj_r; auto.
+  + intros ? ? ? ?; apply LDR1_cf_provable_disj_l; auto.
+  + apply cl_LDR1_sound with (3 := H); simpl; eauto.
+    apply cl_Okada_ctx; eauto.
+    * intros ? ? ? ? ?; apply LDR1_cf_provable_l; auto.
+    * intros ? ? ? ?; apply LDR1_cf_provable_disj_r; auto.
+    * intros ? ? ? ?; apply LDR1_cf_provable_disj_l; auto.
 Qed.
-
-Local Hint Resolve LI1_cf_provable_perm 
-                   LI1_cf_provable_contract LI1_cf_provable_weakening
-                   LI1_cf_provable_id LI1_cf_provable_r : core.
-
-Theorem LI1_cut_admissibility : LI1_provable inc1 LI1_cf_provable.
-Proof.
-  intros (ga,A) H.
-  apply cl_Okada with (P := fun ga a => LI1_cf_provable (ga,a)); auto.
-  apply LI1_cf_provable_perm.
-  intros ? ? ? ? ?; apply LI1_cf_provable_l; auto.
-  
-  apply cl_LI1_sound with (4 := H); simpl; auto.
-  apply LI1_cf_provable_perm.
-  apply LI1_cf_provable_contract.
-  apply cl_Okada_ctx; auto.
-  apply LI1_cf_provable_perm.
-  intros ? ? ? ? ?; apply LI1_cf_provable_l; auto.
-Qed.
-
-
