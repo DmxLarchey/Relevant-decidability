@@ -7,33 +7,33 @@
 (*         CeCILL v2 FREER SOFTWARE LICENSE AGREEMENT         *)
 (**************************************************************)
 
-Require Import Arith Omega List Wellfounded Relations.
+Require Import Arith Lia List Wellfounded Relations.
 
 Require Import tacs rel_utils list_utils good_base.
 
 Set Implicit Arguments.
 
-(* 
+(*
 
-   This file contains the basic informative (or "type-bounded") definitions of the 
-   "Almost Full" AF predicate as defined in "Stop when your almost full" by Vytiniotis, 
-   Coquand and Wahlstedt. The logical/prop-bounded version is denoted af 
+   This file contains the basic informative (or "type-bounded") definitions of the
+   "Almost Full" AF predicate as defined in "Stop when your almost full" by Vytiniotis,
+   Coquand and Wahlstedt. The logical/prop-bounded version is denoted af
    whereas the informative/type-bounded version is denoted af_t (and af_type, see below)
 
    Some proofs and results of this file are largely inspired by that work
    and its "Accompanying development" which is Coq code made available by
-   the autors. 
+   the autors.
 
    In my opinion, the really non-trivial part of what I borrowed from those
-   authors is the *very nice* proof of Ramsey's theorem (originally by Coquand), 
-   i.e. stability of the AF predicate by intersection (or isomorphically 
+   authors is the *very nice* proof of Ramsey's theorem (originally by Coquand),
+   i.e. stability of the AF predicate by intersection (or isomorphically
    by products).
 
    From my point of view, a quite trivial but however VERY usefull addition
    to that code is the af_t_relmap theorem which says that the AF is stable
    under surjective *relational* maps. Hence, it works very well for subtypes
    { x | P x } which is not really the case with  af_t_cofmap, af_t_fmap or
-   af_t_fmap_gen. 
+   af_t_fmap_gen.
 
 *)
 
@@ -42,9 +42,9 @@ Local Ltac squeeze := unfold lift_rel; intros ? ?; (tauto || firstorder || fail)
 Section Almost_Full_type.
 
   Variable X : Type.
-  
+
   Implicit Type R S : X -> X -> Prop.
-  
+
   Inductive af_t R : Type :=
     | in_af_t0 : full R -> af_t R
     | in_af_t1 : (forall x, af_t (R rlift x)) -> af_t R.
@@ -63,7 +63,7 @@ Section Almost_Full_type.
   Proof.
     intros [ ? _ ]; apply af_t_inc; auto.
   Qed.
-  
+
   Definition af_t_inv R : af_t R -> forall a, af_t (R rlift a).
   Proof.
     induction 1 as [ R HR | R HR IHR ] using af_t_rect; intros a.
@@ -115,12 +115,12 @@ Qed.
 Section af_t_union.
 
    Variables (X : Type) (R S : X -> X -> Prop).
-   
+
    Fact af_t_union_left : af_t R -> af_t (fun x y => R x y \/ S x y).
    Proof.
      apply af_t_inc; squeeze.
    Qed.
-   
+
    Fact af_t_union_right : af_t S -> af_t (fun x y => R x y \/ S x y).
    Proof.
      apply af_t_inc; squeeze.
@@ -132,7 +132,7 @@ End af_t_union.
 
 Section af_t_relmap.
 
-  Variables (X Y : Type) (f : X -> Y -> Prop) 
+  Variables (X Y : Type) (f : X -> Y -> Prop)
             (R : X -> X -> Prop) (S : Y -> Y -> Prop)
             (Hf : forall y, { x | f x y })
             (HRS : forall x1 x2 y1 y2, f x1 y1 -> f x2 y2 -> R x1 x2 -> S y1 y2).
@@ -147,7 +147,7 @@ Section af_t_relmap.
     destruct (Hf y1) as (x1 & Hx1).
     destruct (Hf y2) as (x2 & Hx2).
     apply H with (3 := HR x1 x2); auto.
-    
+
     apply in_af_t1; intros y0.
     destruct (Hf y0) as (x0 & Hx0).
     apply IH with x0.
@@ -155,7 +155,7 @@ Section af_t_relmap.
     generalize (H _ _ _ _ H1 H2).
     squeeze.
   Qed.
-    
+
 End af_t_relmap.
 
 (* the reverse map of a total function is surjective *)
@@ -163,7 +163,7 @@ End af_t_relmap.
 Section af_cofmap.
 
   Variables (X Y : Type) (f : Y -> X).
-  
+
   Implicit Types (R : X -> X -> Prop).
 
   Fact af_t_cofmap R : af_t R -> af_t (fun x y => R (f x) (f y)).
@@ -181,7 +181,7 @@ Section af_t_fmap_gen.
 
   Variables (X Y : Type) (f : X -> Y) (Hf : forall y, { x | y = f x }).
 
-  Implicit Types (R : X -> X -> Prop) (S : Y -> Y -> Prop).  
+  Implicit Types (R : X -> X -> Prop) (S : Y -> Y -> Prop).
 
   Fact af_t_fmap_gen R S : (forall x y, R x y -> S (f x) (f y)) -> af_t R -> af_t S.
   Proof.
@@ -191,19 +191,19 @@ Section af_t_fmap_gen.
   Qed.
 
   Definition rel_fmap R (y1 y2 : Y) := exists x1 x2, y1 = f x1 /\ y2 = f x2 /\ R x1 x2.
-  
+
   Fact af_t_fmap R : af_t R -> af_t (rel_fmap R).
   Proof.
     apply af_t_fmap_gen; auto.
     intros x1 x2; intros; subst; exists x1, x2; auto.
   Qed.
- 
+
 End af_t_fmap_gen.
 
 Section af_t_rel_restr.
 
   Variables (X : Type) (P : X -> Prop) (R : X -> X -> Prop).
-  
+
   Theorem af_t_rel_restr : af_t R -> af_t (R <# P #>).
   Proof.
     apply af_t_relmap with (f := fun x y => x = proj1_sig y).
@@ -222,18 +222,18 @@ Section af_t_intersection.
 
   Implicit Types (C : X -> X -> Prop).
 
-  Local Lemma af_t_null_inter_rec A B R :      
-                 af_t R 
-    -> forall C, (forall x y, R x y <-> C x y \/ A) 
-              -> af_t (fun x y => C x y \/ B) 
+  Local Lemma af_t_null_inter_rec A B R :
+                 af_t R
+    -> forall C, (forall x y, R x y <-> C x y \/ A)
+              -> af_t (fun x y => C x y \/ B)
               -> af_t (fun x y => C x y \/ A /\ B).
   Proof.
     induction 1 as [ R HR | R HR1 HR2 ] using af_t_rect; intros C HC HB.
-    
+
     apply af_t_inc with (2 := HB).
     intros x y [ Hxy | Hxy ]; auto.
     specialize (HR x y); rewrite HC in HR; tauto.
-    
+
     apply in_af_t1.
     intros x.
     apply af_t_inc with (R := fun y z => (C y z \/ C x y) \/ A /\ B).
@@ -243,7 +243,7 @@ Section af_t_intersection.
     apply af_t_inc with (2 := HB); squeeze.
   Qed.
 
-  Local Lemma af_t_null_inter C A B : 
+  Local Lemma af_t_null_inter C A B :
         af_t (fun x y => C x y \/ A)
      -> af_t (fun x y => C x y \/ B)
      -> af_t (fun x y => C x y \/ (A /\ B)).
@@ -253,11 +253,11 @@ Section af_t_intersection.
     intros; tauto.
   Qed.
 
-  Local Lemma af_t_una_inter_rec A B R : 
-                  af_t R 
-     -> forall T, af_t T 
-     -> forall C, (forall x y, R x y -> C x y \/ A x) 
-               -> (forall x y, T x y -> C x y \/ B x) 
+  Local Lemma af_t_una_inter_rec A B R :
+                  af_t R
+     -> forall T, af_t T
+     -> forall C, (forall x y, R x y -> C x y \/ A x)
+               -> (forall x y, T x y -> C x y \/ B x)
                -> af_t (fun x y => C x y \/ (A x /\ B x)).
   Proof.
     induction 1 as [ R HR | R HR IHR ] using af_t_rect.
@@ -265,14 +265,14 @@ Section af_t_intersection.
     intros T HT C Req Teq.
     eapply af_t_inc with (2 := HT).
     intros x y; generalize (Req x y) (Teq x y) (HR x y); tauto.
-    
+
     induction 1 as [ T HT | T HT IHT ] using af_t_rect.
 
     intros C Req Teq.
     apply af_t_inc with (R := R).
     intros x y; generalize (HT x y) (Req x y) (Teq x y); tauto.
     apply in_af_t1, HR.
-  
+
     intros C Req Teq.
     apply in_af_t1; intros x.
     generalize (in_af_t1 HT); intros HT'.
@@ -285,7 +285,7 @@ Section af_t_intersection.
     2:{ apply G0.
         intros y z; generalize (Req y z) (Req x y); unfold lift_rel; tauto.
         intros y z Hyz; generalize (Teq y z); tauto. }
-    
+
     squeeze.
 
     generalize (IHT x (fun y z => C y z \/ C x y \/ B x)); intros G0.
@@ -293,11 +293,11 @@ Section af_t_intersection.
     2:{ apply G0.
         intros y z; generalize (Req y z) (Req x y); tauto.
         intros y z [ H1 | H1 ]; apply Teq in H1; tauto. }
-    
+
     squeeze.
   Qed.
-    
-  Local Lemma af_t_una_inter C A B : 
+
+  Local Lemma af_t_una_inter C A B :
         af_t (fun x y => C x y \/ A x)
      -> af_t (fun x y => C x y \/ B x)
      -> af_t (fun x y => C x y \/ (A x /\ B x)).
@@ -307,19 +307,19 @@ Section af_t_intersection.
   Qed.
 
   Implicit Types (A B : X -> X -> Prop).
-  
-  Theorem af_t_inter A B : af_t A -> af_t B -> af_t (A cap2 B). 
+
+  Theorem af_t_inter A B : af_t A -> af_t B -> af_t (A cap2 B).
   Proof.
     intros HA HB.
     revert A HA B HB.
     induction 1 as [ A HA | A HA IHA ] using af_t_rect.
-    
+
     intros B HB; apply af_t_inc with (2 := HB); squeeze.
-    
+
     induction 1 as [ B HB | B HB IHB ] using af_t_rect.
 
     apply af_t_inc with (2 := in_af_t1 HA); squeeze.
-    
+
     apply in_af_t1; intros x.
     unfold lift_rel.
     apply af_t_una_inter.
@@ -330,16 +330,16 @@ Section af_t_intersection.
 End af_t_intersection.
 
 Section af_t_prod.
-  
+
   Variable (X Y : Type).
   Variable (R : X -> X -> Prop) (S : Y -> Y -> Prop).
-  
+
   Theorem af_t_prod : af_t R
                    -> af_t S
                    -> af_t (rel_prod R S).
   Proof.
     intros HR HS;
-    apply af_t_inter; 
+    apply af_t_inter;
     apply af_t_cofmap; auto.
   Qed.
 
@@ -352,12 +352,12 @@ Section af_t_sum.
   Local Lemma af_t_sum_left R : af_t R -> af_t (@sum_left X Y R).
   Proof.
     induction 1 as [ R HR | R HR IH ] using af_t_rect.
-    
+
     apply in_af_t1; intros x.
     apply in_af_t1; intros y.
     apply in_af_t0.
     intros [|] [|]; destruct x; destruct y; simpl; firstorder.
-    
+
     apply in_af_t1; intros [ x | x ].
     apply af_t_inc with (2 := IH x).
     intros [|] [|]; unfold lift_rel, sum_left; tauto.
@@ -371,12 +371,12 @@ Section af_t_sum.
   Local Lemma af_t_sum_right R : af_t R -> af_t (@sum_right X Y R).
   Proof.
     induction 1 as [ R HR | R HR IH ] using af_t_rect.
-    
+
     apply in_af_t1; intros x.
     apply in_af_t1; intros y.
     apply in_af_t0.
     intros [|] [|]; destruct x; destruct y; simpl; firstorder.
-    
+
     apply in_af_t1; intros [ x | x ].
     apply in_af_t1; intros [ y | y ].
     apply in_af_t0.
@@ -400,7 +400,7 @@ Lemma af_t_nat_equiv : af_t (fun x y => x = 0 <-> y = 0).
 Proof.
   do 2 (apply in_af_t1; intro).
   apply in_af_t0; intros.
-  cbv; omega.
+  cbv; lia.
 Qed.
 
 

@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Omega.
+Require Import Arith Lia.
 Require Import List.
 
 Require Import list_utils.
@@ -18,43 +18,43 @@ Set Implicit Arguments.
 Section minimizer.
 
   Variable (X : Type) (f : X -> nat).
-  
+
   Let minimizer_rec n ll : 1 <= length ll < n -> { a | In a ll /\ forall b, In b ll -> f a <= f b }.
   Proof.
     revert ll.
     induction n as [ | n IHn ]; intros ll (H1 & H2).
-    omega.
+    lia.
     destruct ll as [ | a ll ].
-    contradict H1; simpl; omega.
+    contradict H1; simpl; lia.
     destruct (list_dec_rec (fun b => f b < f a) ll) as [ (a' & Ha1 & Ha2) | Ha ].
     intros; apply lt_dec.
-    
+
     destruct (IHn ll) as (m & H3 & H4).
     split.
-    destruct ll; simpl in H2 |- *; try omega.
+    destruct ll; simpl in H2 |- *; try lia.
     destruct Ha1.
-    simpl in H2; omega.
+    simpl in H2; lia.
     exists m; split.
     right; auto.
     intros b [ Hb | Hb ]; auto.
-    subst b; apply le_trans with (1 := H4 _ Ha1); auto; omega.
-    
+    subst b; apply le_trans with (1 := H4 _ Ha1); auto; lia.
+
     exists a; split.
     left; auto.
     intros b [ Hb | Hb ]; auto.
     subst; auto.
-    specialize (Ha _ Hb); omega.
+    specialize (Ha _ Hb); lia.
   Qed.
-  
+
   Let minimizer_list ll : ll <> nil -> { a | In a ll /\ forall b, In b ll -> f a <= f b }.
   Proof.
     intros Hll.
     apply minimizer_rec with (n := S (length ll)).
     destruct ll.
     contradict Hll; auto.
-    simpl; omega.
+    simpl; lia.
   Qed.
-  
+
   Fact minimizer_finite (P : X -> Prop) : finite P
                                        -> (exists a, P a)
                                        -> exists a, P a /\ forall b, P b -> f a <= f b.
@@ -69,9 +69,9 @@ Section minimizer.
     apply Hll; auto.
     intros b Hb; apply H2, Hll; auto.
   Qed.
-  
+
   Fact minimizer_finite_t (P : X -> Prop) : finite_t P
-                                         -> (exists a, P a) 
+                                         -> (exists a, P a)
                                          -> { a | P a /\ forall b, P b -> f a <= f b }.
   Proof.
     intros (ll & Hll) Ha.

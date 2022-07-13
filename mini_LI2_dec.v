@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Omega List Permutation.
+Require Import Arith List Permutation.
 
 Require Import tacs rel_utils list_utils finite.
 
@@ -24,14 +24,14 @@ Section LI2_decider.
   (* Redundancy for LI2 is sequent are identical when considered as sets *)
 
   Let redund (y x : Seq) := eql (fst x) (fst y) /\ snd x = snd y.
-  
+
   Let LI2_redund_af_t s : af_t (redund <# LR_sf s #>).
   Proof.
     generalize (af_t_prod (af_t_eql_finite (sf_Seq_finite_t s))
                           (af_t_eq_finite (sf_Seq_finite_t s))).
     apply af_t_relmap with (f := fun x y => proj1_sig (fst x) = fst (proj1_sig y)
                                          /\ proj1_sig (snd x) = snd (proj1_sig y)).
-                                         
+
     intros ((ga,a) & H); simpl.
     red in H.
     assert (Forall (sf_Seq s) ga) as H1.
@@ -41,16 +41,16 @@ Section LI2_decider.
     assert (sf_Seq s a) as H2.
       apply H; right; apply sf_Form_refl.
     exists (exist _ ga H1, exist _ a H2); auto.
-    
+
     intros ((? & ?) & (? & ?)) ((? & ?) & (? & ?)) ((?,?) & ?) ((?,?) & ?); simpl.
-    intros (? & ?) (? & ?); subst; unfold rel_prod; simpl. 
+    intros (? & ?) (? & ?); subst; unfold rel_prod; simpl.
     intros []; split; simpl; auto; apply eql_sym; auto.
   Qed.
 
   Theorem LI2_decider : forall s, { t | proof LI2_rules s t } + { forall t, ~ proof LI2_rules s t }.
   Proof.
     apply proof_decider with (1 := LI2_rules_finite_t) (sf := LR_sf) (redund := redund).
- 
+
     apply LR_sf_refl.
     apply LR_sf_trans.
     apply sf_LI2_rules.

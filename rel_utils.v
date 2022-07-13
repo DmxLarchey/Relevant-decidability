@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Bool List Relations Wf Eqdep_dec Omega.
+Require Import Arith Bool List Relations Wf Eqdep_dec Lia.
 
 Set Implicit Arguments.
 
@@ -59,8 +59,8 @@ Notation "A 'cap2' B" := (fun x y => A x y /\ B x y) (at level 72, left associat
 Notation "A 'cup1' B" := (fun z => A z \/ B z) (at level 72, left associativity).
 Notation "A 'cup2' B" := (fun x y => A x y \/ B x y) (at level 72, left associativity).
 
-Notation union1 := ((fun X I (R : I -> X -> Prop) x => exists i, R i x) _ _). 
-Notation union2 := ((fun X I (R : I -> X -> X -> Prop) x y => exists i, R i x y) _ _). 
+Notation union1 := ((fun X I (R : I -> X -> Prop) x => exists i, R i x) _ _).
+Notation union2 := ((fun X I (R : I -> X -> X -> Prop) x y => exists i, R i x y) _ _).
 
 Notation "R 'o' S" := (fun x z => exists y, R x y /\ S y z) (at level 60).
 
@@ -68,21 +68,21 @@ Notation ES := (Empty_set : Type).
 Notation ER := (fun (_ _ : ES) => True).
 
 Notation empty := ((fun X (P : X -> Prop) => forall x, ~ P x) _).
-Notation full := ((fun X (R : X -> X -> Prop) => forall x y, R x y) _). 
+Notation full := ((fun X (R : X -> X -> Prop) => forall x y, R x y) _).
 
 Notation set_mono := ((fun X (R : X -> X -> Prop) (B : X -> Prop) => forall x y, R x y -> B x -> B y) _).
-Notation seq_mono := ((fun X (R : X -> X -> Prop) (f : nat -> X) => forall n, R (f n) (f (S n))) _). 
+Notation seq_mono := ((fun X (R : X -> X -> Prop) (f : nat -> X) => forall n, R (f n) (f (S n))) _).
 
 Notation feq := ((fun U V (r s : U -> V) => forall u, r u = s u) _ _).
-Notation comp := ((fun U V W (f : V -> W) (h : U -> V) u => f (h u)) _ _ _).   
-     
-Notation ext_pred := ((fun U V (P : (U -> V) -> Prop) => (forall r s, feq r s -> P r -> P s)) _ _).             
+Notation comp := ((fun U V W (f : V -> W) (h : U -> V) u => f (h u)) _ _ _).
+
+Notation ext_pred := ((fun U V (P : (U -> V) -> Prop) => (forall r s, feq r s -> P r -> P s)) _ _).
 Notation ext_pred_t := ((fun U V (P : (U -> V) -> Type) => (forall r s, feq r s -> P r -> P s)) _ _).
 
 Notation ext := ((fun U V (P : (U -> V) -> Prop) => forall s s', (forall i, s i = s' i) -> P s -> P s') _ _).
-Notation ext2 := ((fun U V X Y (P : (U -> V) -> (X -> Y) -> Prop) 
-                         => forall r s f g, (forall i, r i = s i) 
-                                         -> (forall j, f j = g j) 
+Notation ext2 := ((fun U V X Y (P : (U -> V) -> (X -> Y) -> Prop)
+                         => forall r s f g, (forall i, r i = s i)
+                                         -> (forall j, f j = g j)
                                          -> P r f -> P s g) _ _ _ _).
 
 (* Definition rel_restr X (R : X -> X -> Prop) (A : X -> Prop) (x y : sig A) := R (proj1_sig x) (proj1_sig y).
@@ -117,21 +117,21 @@ Section rel_comps.
     match x, y with
       | inl x, inl y => R x y
       | inr x, inr y => True
-      | _    , _     => False 
+      | _    , _     => False
     end.
 
   Definition sum_right S (x y : X+Y) :=
     match x, y with
       | inl x, inl y => True
       | inr x, inr y => S x y
-      | _    , _     => False 
+      | _    , _     => False
     end.
-    
+
   Definition sum_both R S (x y : X+Y) :=
     match x, y with
       | inl x, inl y => R x y
       | inr x, inr y => S x y
-      | _    , _     => False 
+      | _    , _     => False
     end.
 
 End rel_comps.
@@ -146,7 +146,7 @@ Proof. tauto. Qed.
 
 Fact not_or_and_not (A B : Prop) : ~ (A \/ B) <-> ~ A /\ ~ B.
 Proof. tauto. Defined.
-  
+
 Fact not_exst_fall_not X (A P : X -> Prop) : (~ exists x, A x /\ P x) <-> forall x, A x -> ~ P x.
 Proof.
   split.
@@ -174,7 +174,7 @@ Section transitivity.
     exists x; split; auto; constructor 2.
     exists y; split; auto.
     constructor 3 with k; auto; constructor 1; auto.
-    
+
     intros (y & H1 & H2); revert z H2.
     rewrite clos_rt_rtn1_iff in H1.
     induction H1 as [ | y z Hyz H1 IH1 ]; intros k Hk.
@@ -190,18 +190,18 @@ Section transitivity.
     apply Hf.
     intros Hn.
     constructor 2 with (f (S k+i)).
-    apply IHk; omega.
-    apply Hf; omega.
+    apply IHk; lia.
+    apply Hf; lia.
   Qed.
-  
+
   Fact clos_trans_succ R n f : (forall i, i < n -> clos_trans _ R (f i) (f (S i))) -> forall i j, i < j <= n -> clos_trans _ R (f i) (f j).
   Proof.
     intros Hf i j Hij.
     cutrewrite (j = S (j - S i) + i).
     apply clos_trans_succ_rec with (n := n); auto.
-    omega.
-    omega.
-  Qed.    
+    lia.
+    lia.
+  Qed.
 
   Let sR R x y := R x y /\ ~ R y x.
 
@@ -221,10 +221,10 @@ Section iterated.
 
   Variables (X : Type).
 
-  Implicit Type (R : X -> X -> Prop). 
+  Implicit Type (R : X -> X -> Prop).
 
   Fixpoint rel_iter R p :=
-    match p with 
+    match p with
       | 0   => @eq _
       | S p => R o rel_iter R p
     end.
@@ -237,18 +237,18 @@ Section iterated.
   Qed.
 
   Fixpoint rel_iter_rev R p :=
-    match p with 
+    match p with
       | 0   => @eq _
       | S p => rel_iter_rev R p o R
     end.
 
   Fact rel_comp_eq_left R : @eq _ o R ~eq2 R.
-  Proof. 
+  Proof.
     firstorder; subst; auto.
   Qed.
 
   Fact rel_comp_eq_right R : R o @eq _ ~eq2 R.
-  Proof. 
+  Proof.
     firstorder; subst; auto.
   Qed.
 
@@ -260,9 +260,9 @@ Section iterated.
   Fact rel_comp_congr_left (R S T : X -> X -> Prop) : S ~eq2 T -> R o S ~eq2 R o T.
   Proof.
     firstorder.
-  Qed.  
+  Qed.
 
-  Fact rel_iter_assoc R p q : rel_iter_rev R (S p) o rel_iter R q 
+  Fact rel_iter_assoc R p q : rel_iter_rev R (S p) o rel_iter R q
                          ~eq2 rel_iter_rev R    p  o rel_iter R (S q).
   Proof.
     apply rel_comp_assoc.
@@ -272,7 +272,7 @@ Section iterated.
   Proof.
     induction a; simpl.
     apply eq2_sym, rel_comp_eq_left.
-    apply eq2_sym, eq2_trans with (1 := rel_comp_assoc _ _ _), 
+    apply eq2_sym, eq2_trans with (1 := rel_comp_assoc _ _ _),
           eq2_sym, rel_comp_congr_left; auto.
   Qed.
 
@@ -283,7 +283,7 @@ Section iterated.
     apply eq2_trans with (1 := rel_comp_eq_left _), eq2_refl.
 
     apply eq2_trans with (1 := rel_iter_assoc _ _ _).
-    cutrewrite (S p + q = p + S q); try omega; apply IHp.
+    cutrewrite (S p + q = p + S q); try lia; apply IHp.
   Qed.
 
   Fact rel_iter_rev_eq R p : rel_iter_rev R p ~eq2 rel_iter R p.
@@ -297,22 +297,22 @@ Section iterated.
 End iterated.
 
 Section iter.
-  
+
   Variable (A : Type) (f : A -> A).
-  
+
   Definition iter n x := nat_rect _ x (fun _ => f) n.
-  
+
   Fact iter_app x a b : iter (a+b) x = iter a (iter b x).
   Proof. induction a; simpl; f_equal; auto. Qed.
-    
+
   Fact iter_S x n : iter (S n) x = iter n (f x).
   Proof.
-    replace (S n) with (n+1) by omega.
+    replace (S n) with (n+1) by lia.
     rewrite iter_app; auto.
   Qed.
-    
+
 End iter.
- 
+
 (* monotonicity / continuity *)
 
 Section rel_props.
@@ -321,14 +321,14 @@ Section rel_props.
 
   Implicit Types (R S : relation X) (K : nat -> relation X).
 
-  Section defs. 
+  Section defs.
 
     Variable (Y : Type).
- 
+
     Variable f : relation X -> relation Y.
-    
+
     Definition op_monotonic := forall R S, R inc2 S -> f R inc2 f S.
-    Definition seq_increasing K := forall n, K n inc2 K (S n). 
+    Definition seq_increasing K := forall n, K n inc2 K (S n).
     Definition op_w_continuous := forall K, seq_increasing K -> f (fun x y => exists n, K n x y) inc2 fun x y => exists n, f (K n) x y.
 
     Fact seq_inc_all K : seq_increasing K -> forall n m, n <= m -> K n inc2 K m.
@@ -357,7 +357,7 @@ Section rel_props.
     constructor 1; auto.
     constructor 2 with y; auto.
   Qed.
-  
+
   Fact clos_trans_w_cont : op_w_continuous (clos_trans X).
   Proof.
     intros K HK x y.
@@ -374,17 +374,17 @@ End rel_props.
 Section op_comp.
 
   Variable (X Y Z : Type) (f : relation X -> relation Y) (g : relation Y -> relation Z).
-  
+
   Hypothesis Hf1 : op_monotonic f.
   Hypothesis Hf2 : op_w_continuous f.
-  
+
   Hypothesis Hg1 : op_monotonic g.
   Hypothesis Hg2 : op_w_continuous g.
-  
+
   Fact op_comp_monotonic : op_monotonic (fun R => g (f R)).
   Proof.
     intros ? ? H; apply Hg1, Hf1, H.
-  Qed. 
+  Qed.
 
   Fact op_comp_w_continuous : op_w_continuous (fun R => g (f R)).
   Proof.
@@ -403,7 +403,7 @@ End op_comp.
 (*
 Definition add_one X (A : X -> Prop) y := fun z => A z \/ y = z.
 Definition rel_restriction X (R : X -> X -> Prop) A := fun x y => R x y /\ A x /\ A y.
-    
+
 Infix "restr" := (@rel_restriction _) (at level 71, left associativity).
 
 Section restrictions.
@@ -435,11 +435,11 @@ Infix "rlift" := (@lift_rel _) (at level 69, left associativity).
 Section rlift_rel_restr_eq.
 
   Variable (X : Type) (P : X -> Prop) (R S : X -> X -> Prop).
-  
+
   Fact litf_rel_restr_eq t : P t -> R <# P #> ~eq2 S <# P #> -> (R rlift t) <# P #> ~eq2 (S rlift t) <# P #>.
   Proof.
-    intros Ht (H1 & H2); split; intros a b; 
-      [ generalize (H1 a b) (H1 (exist _ t Ht) a) | generalize (H2 a b) (H2 (exist _ t Ht) a) ]; 
+    intros Ht (H1 & H2); split; intros a b;
+      [ generalize (H1 a b) (H1 (exist _ t Ht) a) | generalize (H2 a b) (H2 (exist _ t Ht) a) ];
       destruct a; destruct b; unfold lift_rel; simpl; tauto.
   Qed.
 
@@ -451,8 +451,8 @@ Section rlift_rel_restr_eq.
 
 End rlift_rel_restr_eq.
 
-Fixpoint lift_rel_list X (R : X -> X -> Prop) ll := 
-  match ll with 
+Fixpoint lift_rel_list X (R : X -> X -> Prop) ll :=
+  match ll with
     | nil   => R
     | k::ll => (lift_rel_list R ll) rlift k
   end.
@@ -508,7 +508,7 @@ Definition eq_option_nat_pirr := eq_dec_pirr eq_option_nat_dec.
 Section le_pirr.
 
   (* a dependent induction principle for le *)
-  
+
   Scheme le_indd := Induction for le Sort Prop.
 
   Theorem le_pirr : rel_pirr le.
@@ -518,12 +518,12 @@ Section le_pirr.
 
     change (le_n n) with (eq_rect _ (fun n0 => n <= n0) (le_n n) _ eq_refl).
     generalize (eq_refl n).
-    pattern n at 2 4 6 10, H2. 
+    pattern n at 2 4 6 10, H2.
     case H2; [intro E | intros m l E].
     rewrite UIP_dec with (p1 := E) (p2 := eq_refl); auto.
     apply eq_nat_dec.
     contradiction (le_Sn_n m); subst; auto.
-    
+
     change (le_S n m H1) with (eq_rect _ (fun n0 => n <= n0) (le_S n m H1) _ eq_refl).
     generalize (eq_refl (S m)).
     pattern (S m) at 1 3 4 6, H2.
@@ -556,23 +556,22 @@ Section rel_dsum.
     match a, b with
       | existT _ n1 x1, existT _ n2 x2 => exists H : n1 = n2, R (eq_rect _  X x1 _ H) x2
     end.
-    
+
   (* For those who are not conviced with what eq_rect means (type cast), here
      are the properties we want for the dependent sum *)
-      
+
   Fact rel_dsum_prop1 n x y : @R n x y -> rel_dsum (existT _ _ x) (existT _ _ y).
   Proof.
     exists eq_refl; auto.
   Qed.
-  
+
   Fact rel_dsum_prop2 n x m y : rel_dsum (existT _ n x) (existT _ m y) -> n = m.
   Proof. intros (? & _); auto. Qed.
-  
+
   Fact rel_dsum_prop3 n x y : rel_dsum (existT _ n x) (existT _ n y) -> R x y.
   Proof.
     intros (E & H).
     rewrite (eq_nat_pirr E eq_refl) in H; auto.
   Qed.
-  
-End rel_dsum.
 
+End rel_dsum.

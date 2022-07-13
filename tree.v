@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Max Omega List Relations Wellfounded.
+Require Import Arith Max Lia List Relations Wellfounded.
 
 Require Import tacs acc_utils rel_utils list_utils finite good_base.
 
@@ -30,22 +30,22 @@ Section trees.
 
   Fact tree_root_sons_eq t : t = in_tree (tree_root t) (tree_sons t).
   Proof. destruct t; auto. Qed.
-  
+
   (* the immediate subtree relation *)
-  
+
   Definition imsub_tree s t := match t with in_tree _ ll => In s ll end.
-  
+
   Infix "<ist" := imsub_tree (at level 70).
-  
+
   Fact imsub_tree_fix s t : s <ist t <-> exists x ll, In s ll /\ t = in_tree x ll.
   Proof.
     split.
     destruct t as [ x ll ]; exists x, ll; auto.
     intros (x & ll & H1 & ?); subst; auto.
   Qed.
-  
+
   (* The immediate subtree relation is well founded *)
-  
+
   Lemma imsub_tree_wf : well_founded imsub_tree.
   Proof.
     refine (fix loop t :=
@@ -77,7 +77,7 @@ Section trees.
     Defined.
 
     Section tree_rect_fix.
-    
+
       Variable E : forall t, P t -> P t -> Prop.
 
       Hypothesis f_ext : forall a ll f1 f2, (forall x Hx, E (f1 x Hx) (f2 x Hx)) -> E (f a ll f1) (f a ll f2).
@@ -89,26 +89,26 @@ Section trees.
         apply f_ext; intros; apply Fix_F_ext.
         intros [] ? ?; apply f_ext.
       Qed.
-      
+
     End tree_rect_fix.
-    
+
     Section tree_rect_fix_eq.
 
       Hypothesis f_ext : forall a ll f1 f2, (forall x Hx, f1 x Hx = f2 x Hx) -> f a ll f1 = f a ll f2.
-      
-      (* Coq recursive type-checking does not allow such a definition 
+
+      (* Coq recursive type-checking does not allow such a definition
          but it is possible to prove this identity
       *)
-      
+
       Fact tree_rect_fix_eq a ll : tree_rect (in_tree a ll) = f a ll (fun t _ => tree_rect t).
       Proof.
         apply tree_rect_fix with (E := fun _ => @eq _); simpl; auto.
       Qed.
-      
+
     End tree_rect_fix_eq.
 
   End tree_rect.
-  
+
   Definition tree_rec (P : tree -> Set)  := tree_rect P.
   Definition tree_ind (P : tree -> Prop) := tree_rect P.
 
@@ -116,15 +116,15 @@ Section trees.
 
     (* the particular case when the output type does not depend on the tree *)
 
-    Variables (Y : Type) (f : X -> list tree -> list Y -> Y).    
-  
+    Variables (Y : Type) (f : X -> list tree -> list Y -> Y).
+
     Definition tree_recursion : tree -> Y.
     Proof.
       apply tree_rect.
       intros x ll IH.
       apply (f x ll (list_In_map _ IH)).
     Defined.
-    
+
     (* In that case, extensionnality is for free *)
 
     Fact tree_recursion_fix x ll : tree_recursion (in_tree x ll) = f x ll (map tree_recursion ll).
@@ -135,13 +135,13 @@ Section trees.
       clear x ll; intros x ll g h H; simpl.
       f_equal; apply list_In_map_ext, H.
     Qed.
-  
+
   End tree_recursion.
 
   Section tree_eq_dec.
 
     Hypothesis eqX_dec : forall x y : X, { x = y } + { x <> y }.
-    
+
     Theorem tree_eq_dec (t1 t2 : tree) : { t1 = t2 } + { t1 <> t2 }.
     Proof.
       revert t2; induction t1 as [ x ll IH ]; intros [ y mm ].
@@ -171,30 +171,30 @@ Section trees.
     induction 1 as [ _ _ IH ] using tree_recursion.
     apply (S (lmax IH)).
   Defined.
-  
+
   Fact tree_ht_fix x ll : tree_ht (in_tree x ll) = S (lmax (map tree_ht ll)).
   Proof.
     apply tree_recursion_fix.
   Qed.
-  
+
   Fact tree_ht_0 t : 0 < tree_ht t.
   Proof.
-    destruct t; rewrite tree_ht_fix; omega.
+    destruct t; rewrite tree_ht_fix; lia.
   Qed.
-  
+
   Definition tree_sum_ht : tree -> nat.
   Proof.
     induction 1 as [ x ll IH ] using tree_recursion.
     apply (tree_ht (in_tree x ll) + lsum IH).
   Defined.
-  
+
   Fact tree_sum_ht_fix x ll : tree_sum_ht (in_tree x ll)
                             = tree_ht (in_tree x ll)
                             + lsum (map tree_sum_ht ll).
   Proof.
     apply tree_recursion_fix.
   Qed.
-  
+
   Fact tree_ht_find x ll : ll <> nil -> { t | In t ll /\ tree_ht (in_tree x ll) = S (tree_ht t) }.
   Proof.
     intros H.
@@ -202,13 +202,13 @@ Section trees.
     exists t; rewrite tree_ht_fix, H2; auto.
   Qed.
 
-  (* this is the subtree relation, aka inclusion *)   
+  (* this is the subtree relation, aka inclusion *)
 
   Reserved Notation "x '<st' y" (at level 70, no associativity).
 
   Inductive sub_tree : tree -> tree -> Prop :=
     | in_subtree_0 : forall t, t <st t
-    | in_subtree_1 : forall s t x ll, In t ll -> s <st t -> s <st in_tree x ll 
+    | in_subtree_1 : forall s t x ll, In t ll -> s <st t -> s <st in_tree x ll
   where "x <st y" := (sub_tree x y).
 
   Fact sub_tree_ht s t : s <st t -> tree_ht s <= tree_ht t.
@@ -220,7 +220,7 @@ Section trees.
     apply lmax_In.
     apply in_map_iff.
     exists t; auto.
-  Qed.    
+  Qed.
 
   (* this is the strict subtree relation *)
 
@@ -228,19 +228,19 @@ Section trees.
 
   Inductive ssub_tree : tree -> tree -> Prop :=
     | in_ssubtree_0 : forall s   x ll, In s ll -> s <<st in_tree x ll
-    | in_ssubtree_1 : forall s t x ll, In t ll -> s <<st t -> s <<st in_tree x ll 
+    | in_ssubtree_1 : forall s t x ll, In t ll -> s <<st t -> s <<st in_tree x ll
   where "x <<st y" := (ssub_tree x y).
 
   Fact in_subtree_0' s t : s = t -> s <st t.
   Proof. intro; subst; constructor. Qed.
-  
+
   Fact imsub_ssub_tree s t : s <ist t -> s <<st t.
   Proof.
     rewrite imsub_tree_fix.
     intros (x & ll & H1 & H2); subst.
     constructor 1; auto.
   Qed.
-  
+
   Fact ssub_sub_tree s t : s <<st t -> s <st t.
   Proof.
     induction 1 as [ s | s t ].
@@ -248,7 +248,7 @@ Section trees.
     constructor 1.
     constructor 2 with t; auto.
   Qed.
-  
+
   Fact ssub_tree_trans r s t : r <<st s -> s <<st t -> r <<st t.
   Proof.
     intro; induction 1 as [ s | ? t ]; auto.
@@ -264,12 +264,12 @@ Section trees.
     constructor 1; auto.
     constructor 2 with (1 := H3).
     constructor 1; auto.
-    
+
     induction 1 as [ | ? s ].
     apply imsub_ssub_tree; auto.
     apply ssub_tree_trans with s; auto.
   Qed.
-  
+
   Fact ssub_tree_wf : well_founded ssub_tree.
   Proof.
     generalize imsub_tree_wf; intros H.
@@ -292,13 +292,13 @@ Section trees.
   Fact ssub_tree_inv_left s t : s <<st t <-> exists s', s <ist s' /\ s' <st t.
   Proof.
     split.
-    
+
     induction 1 as [ s x ll | s t x ll H1 H2 (s' & H3 & H4) ].
     exists (in_tree x ll); split; auto.
     constructor 1.
     exists s'; split; auto.
     constructor 2 with t; auto.
-    
+
     intros (s' & H1 & H2).
     revert s H1.
     induction H2 as [ s' | s' t x ll H1 H2 H3 ].
@@ -319,7 +319,7 @@ Section trees.
     exists t; split; auto.
     apply sub_tree_trans with (1 := H3).
     apply ssub_sub_tree, imsub_ssub_tree, H4.
-    
+
     destruct t as [ x ll ]; simpl.
     intros (s' & H1 & H2); subst.
     revert x ll H2.
@@ -327,7 +327,7 @@ Section trees.
     constructor 1; auto.
     constructor 2 with (in_tree x ll); auto.
   Qed.
-  
+
   Fact ssub_tree_inv s x ll : s <<st in_tree x ll <-> exists t, s <st t /\ In t ll.
   Proof.
     rewrite ssub_tree_inv_right; simpl; split; auto.
@@ -342,7 +342,7 @@ Section trees.
     exists s'; split; auto.
     apply sub_tree_trans with (1 := H1); auto.
   Qed.
-  
+
   Fact ssub_sub_tree_trans r s t : r <<st s -> s <st t -> r <<st t.
   Proof.
     intros H1 H2.
@@ -360,7 +360,7 @@ Section trees.
     induction 1 as [ | s t x ll H1 H2 [ H3 | H3 ]]; subst; auto; right.
     constructor 1; auto.
     constructor 2 with t; auto.
-    
+
     intros [ H | H ].
     subst; constructor.
     apply ssub_sub_tree; auto.
@@ -377,7 +377,7 @@ Section trees.
   Definition tree_leaf t : { x | in_tree x nil <st t }.
   Proof.
     induction t as [ x [ | t ll ] IH ] using tree_rect.
-    
+
     exists x; constructor 1.
     destruct (IH t) as (y & Hy).
     left; auto.
@@ -398,7 +398,7 @@ Section trees.
     Proof.
       apply tree_recursion_fix.
     Qed.
-    
+
     Fact sub_trees_sub_tree_eq t x : In x (sub_trees t) <-> x <st t.
     Proof.
       split.
@@ -414,7 +414,7 @@ Section trees.
       apply in_map_iff in H2.
       destruct H2 as (t & H2 & H3); subst mm.
       constructor 2 with t; auto.
-      
+
       induction 1 as [ [ x ll ] | s t x ll H1 H2 H3 ]; rewrite sub_trees_fix.
       left; auto.
       right.
@@ -442,20 +442,20 @@ Section trees.
        not be well-formed in Coq
     *)
 
-    Fact tree_fall_fix x ll : tree_fall (in_tree x ll) <-> P x ll /\ forall t, In t ll -> tree_fall t. 
+    Fact tree_fall_fix x ll : tree_fall (in_tree x ll) <-> P x ll /\ forall t, In t ll -> tree_fall t.
     Proof.
       unfold tree_fall at 1.
-      rewrite tree_rect_fix 
+      rewrite tree_rect_fix
         with (E := fun _ A B => A <-> B);
         firstorder.
     Qed.
- 
+
     Section tree_fall_rect.
-  
+
       Variable (Q : tree -> Type).
-  
+
       Hypothesis HQ : forall x ll, tree_fall (in_tree x ll) -> (forall t, In t ll -> Q t) -> Q (in_tree x ll).
-  
+
       Theorem tree_fall_rect t : tree_fall t -> Q t.
       Proof.
         induction t as [ x ll IH ]; intros H.
@@ -464,7 +464,7 @@ Section trees.
       Qed.
 
     End tree_fall_rect.
-    
+
     Definition tree_fall_rec (Q : tree -> Set) := @tree_fall_rect Q.
     Definition tree_fall_ind (Q : tree -> Prop) := @tree_fall_rect Q.
 
@@ -480,7 +480,7 @@ Section trees.
       destruct H1 as [ H1 | (t & H1 & H2) ].
       injection H1; clear H1; intros; subst; auto.
       apply IH with t; auto.
-      
+
       induction t as [ x ll IH ]; intros Ht.
       rewrite tree_fall_fix; split.
       apply Ht; constructor 1.
@@ -498,10 +498,10 @@ Section trees.
     Let disj_eq_prop (A B B' : Prop) : (B <-> B') -> (A \/ B <-> A \/ B').
     Proof. tauto. Qed.
 
-    Fact tree_exst_fix x ll : tree_exst (in_tree x ll) <-> P x ll \/ exists t, In t ll /\ tree_exst t. 
+    Fact tree_exst_fix x ll : tree_exst (in_tree x ll) <-> P x ll \/ exists t, In t ll /\ tree_exst t.
     Proof.
       unfold tree_exst at 1.
-      rewrite tree_rect_fix 
+      rewrite tree_rect_fix
         with (E := fun _ A B => A <-> B).
       apply disj_eq_prop.
       split; intros (y & ? & ?); exists y; split; auto.
@@ -520,7 +520,7 @@ Section trees.
       destruct (IH _ H1 H2) as (y & mm & H3 & H4).
       exists y, mm; split; auto.
       constructor 2 with t; auto.
-      
+
       intros (x & ll & H1 & H2); revert x ll H1 H2.
       induction t as [ x ll IH ]; intros y mm H1 H2.
       rewrite tree_exst_fix.
@@ -559,53 +559,53 @@ Section trees.
     intros H t; induction t as [ x ll IH ].
     repeat rewrite tree_exst_fix.
     intros [| (t & ? & ?)]; [ left | right ]; auto; exists t; auto.
-  Qed. 
+  Qed.
 
   Section tree_fall_exst_dec.
 
     Variable (P Q : X -> list tree -> Prop).
 
     Hypothesis PQ_incomp : forall x ll, P x ll -> Q x ll -> False.
-    
+
     Fact tree_fall_exst_incomp t : tree_fall P t -> tree_exst Q t -> False.
     Proof.
       induction t as [ x ll IH ].
       rewrite tree_fall_fix, tree_exst_fix.
       intros [ H1 H2 ] [ H3 | (t & H3 & H4) ].
-      
+
       apply PQ_incomp with (1 := H1); auto.
       apply IH with (1 := H3); auto.
-    Qed.      
+    Qed.
 
-    Hypothesis PQ_dec : forall x ll, { P x ll } + { Q x ll }.    
-    
+    Hypothesis PQ_dec : forall x ll, { P x ll } + { Q x ll }.
+
     Fact tree_fall_exst_dec t : { tree_fall P t } + { tree_exst Q t }.
     Proof.
       induction t as [ x ll IH ].
       destruct (list_choose_rec (tree_exst Q) (tree_fall P) ll) as [ (t & H1 & H2) | H1 ].
       intros z Hz; specialize (IH _ Hz); tauto.
-      
+
       right.
       apply tree_exst_fix.
       right; exists t; auto.
-      
+
       destruct (PQ_dec x ll) as [ | H2 ].
-      
+
       left; apply tree_fall_fix; auto.
-      
+
       right.
       apply tree_exst_fix.
       left; auto.
     Qed.
-    
+
   End tree_fall_exst_dec.
 
   Section tree_fall_dec.
-  
+
     Variable (P : X -> list tree -> Prop).
 
     Hypothesis PQ_dec : forall x ll, { P x ll } + { ~ P x ll }.
-    
+
     Fact tree_fall_dec t : { tree_fall P t } + { ~ tree_fall P t }.
     Proof.
       destruct (tree_fall_exst_dec _ _ PQ_dec t) as [ | C ].
@@ -614,7 +614,7 @@ Section trees.
       apply tree_fall_exst_incomp with (2 := H) (3 := C).
       intros; tauto.
     Qed.
-    
+
     Fact tree_exst_dec t : { tree_exst P t } + { ~ tree_exst P t }.
     Proof.
       destruct (tree_fall_exst_dec (fun x ll => ~ P x ll) P) with (t := t) as [ C | ].
@@ -632,7 +632,7 @@ End trees.
 Infix "<st" := (@sub_tree _) (at level 70, no associativity).
 Infix "<<st" := (@ssub_tree _) (at level 70, no associativity).
 Infix "<ist" := (@imsub_tree _) (at level 70, no associativity).
-    
+
 Section tree_branch.
 
   Variable X : Type.
@@ -642,7 +642,7 @@ Section tree_branch.
     | in_tb1 : forall x, tree_branch (in_tree x nil) (x::nil)
     | in_tb2 : forall b x ll s, In s ll -> tree_branch s b -> tree_branch (in_tree x ll) (x::b).
 
-  Fact tree_branch_inv t b : tree_branch t b 
+  Fact tree_branch_inv t b : tree_branch t b
                           -> b = nil
                           \/ tree_sons t = nil /\ b = tree_root t::nil
                           \/ exists b' x ll s,
@@ -656,8 +656,8 @@ Section tree_branch.
   Qed.
 
   Fact tree_branch_cons_inv x ll y b : tree_branch (in_tree x ll) (y::b)
-                                    -> x = y 
-                                    /\  (ll = nil /\ b = nil 
+                                    -> x = y
+                                    /\  (ll = nil /\ b = nil
                                       \/ exists s, In s ll /\ tree_branch s b).
   Proof.
     intros H.
@@ -671,7 +671,7 @@ Section tree_branch.
     split; auto; right.
     exists s; auto.
   Qed.
-  
+
   Definition tree_branch_list : tree X -> list (list X).
   Proof.
     apply tree_recursion.
@@ -679,12 +679,12 @@ Section tree_branch.
     exact (nil::(x::nil)::nil).
     exact (nil::map (cons x) (concat lb)).
   Defined.
-  
+
   Fact tree_branch_list_fix0 x : tree_branch_list (in_tree x nil) = nil::(x::nil)::nil.
   Proof.
     apply tree_recursion_fix.
   Qed.
-  
+
   Fact tree_branch_list_fix1 x ll : ll <> nil -> tree_branch_list (in_tree x ll) = nil::map (cons x) (flat_map tree_branch_list ll).
   Proof.
     destruct ll as [ | y ll ].
@@ -695,18 +695,18 @@ Section tree_branch.
     do 2 f_equal.
     symmetry; apply flat_map_concat_map.
   Qed.
-  
+
   Fact tree_branch_list_nil t : In nil (tree_branch_list t).
   Proof.
     destruct t as [ x [ | y ll ] ].
     rewrite tree_branch_list_fix0; left; auto.
     rewrite tree_branch_list_fix1; try discriminate; left; auto.
   Qed.
-  
+
   Fact tree_branch_list_eq t b : tree_branch t b <-> In b (tree_branch_list t).
   Proof.
     split.
-    
+
     induction 1 as [ | x | b x ll s H1 H2 IH2 ].
     apply tree_branch_list_nil.
     rewrite tree_branch_list_fix0; right; left; auto.
@@ -717,7 +717,7 @@ Section tree_branch.
     exists b; split; auto.
     apply in_flat_map.
     exists s; auto.
-    
+
     revert b; induction t as [ x [ | y ll ] IH ]; intros b.
     rewrite tree_branch_list_fix0.
     intros [ [] | [ [] | [] ] ].
@@ -732,7 +732,7 @@ Section tree_branch.
     destruct H as (t & ? & ?).
     constructor 3 with t; auto.
   Qed.
-  
+
   Fact tree_branch_finite_t t : finite_t (tree_branch t).
   Proof.
     exists (tree_branch_list t); symmetry; apply tree_branch_list_eq.
@@ -748,30 +748,30 @@ Section tree_branch.
     subst t; simpl.
     injection H2; auto.
   Qed.
-  
+
   (* Every branch is smaller than the height of the tree *)
 
   Fact tree_branch_length_ht t b : tree_branch t b -> length b <= tree_ht t.
   Proof.
     induction 1 as [ | x | b x ll s H1 H2 IH2 ].
-    destruct t; rewrite tree_ht_fix; simpl; omega.
-    rewrite tree_ht_fix; simpl; omega.
+    destruct t; rewrite tree_ht_fix; simpl; lia.
+    rewrite tree_ht_fix; simpl; lia.
     rewrite tree_ht_fix; simpl; apply le_n_S.
     apply le_trans with (1 := IH2).
     apply lmax_In, in_map_iff.
     exists s; auto.
   Qed.
-  
+
   (* and there is a computable branch which has exactly the height if the tree *)
-  
+
   Fact tree_ht_branch t : { b | tree_branch t b /\ length b = tree_ht t }.
   Proof.
     induction t as [ x [ | y ll ] IH ].
-    
+
     exists (x::nil); simpl; split; auto.
     constructor 2; auto.
     rewrite tree_ht_fix; auto.
-    
+
     destruct (@tree_ht_find _ x (y::ll)) as (t & H1 & H2).
     discriminate.
     destruct (IH _ H1) as (b & H3 & H4).
@@ -779,7 +779,7 @@ Section tree_branch.
     constructor 3 with t; auto.
     rewrite H2; simpl; f_equal; auto.
   Qed.
-  
+
   (* Hence n-bounded trees can be characterized by the length of their branches *)
 
   Fact branch_length_tree_ht t n : (forall b, tree_branch t b -> length b <= n) <-> tree_ht t <= n.
@@ -814,9 +814,9 @@ Section tree_branch.
     exists t'; split; auto.
     subst t; constructor 2 with s; auto.
   Qed.
-  
-  Fact tree_split_search t l x r : 
-       tree_branch t (l++x::r) -> 
+
+  Fact tree_split_search t l x r :
+       tree_branch t (l++x::r) ->
             r = nil /\ in_tree x nil <st t
          \/ exists t' tx, tree_branch t' r /\ In t' tx /\ in_tree x tx <st t.
   Proof.
@@ -827,30 +827,30 @@ Section tree_branch.
     destruct H1 as (? & [ (H5 & H7) | (t' & H5 & H7) ]); subst y.
     left; subst; auto.
     right; exists t', tx; auto.
-  Qed. 
+  Qed.
 
   Definition bounded_tree n (t : tree X) := tree_ht t <= n.
-  
+
   Fact bounded_tree_O : forall t, ~ bounded_tree 0 t.
   Proof.
-    intros [ x ll ]; unfold bounded_tree; rewrite tree_ht_fix; omega.
+    intros [ x ll ]; unfold bounded_tree; rewrite tree_ht_fix; lia.
   Qed.
-  
+
   Fact bounded_tree_S n t : bounded_tree (S n) t <-> Forall (bounded_tree n) (tree_sons t).
   Proof.
     destruct t as [ x ll ]; simpl.
     unfold bounded_tree; rewrite tree_ht_fix.
-    split.  
-  
+    split.
+
     intros H.
     apply le_S_n in H.
     induction ll as [ | y ll IH ]; simpl in H; constructor.
     apply le_trans with (2 := H), le_max_l.
     apply IH, le_trans with (2 := H), le_max_r.
-    
+
     intros H; apply le_n_S.
     induction H as [ | y ll IH ]; simpl.
-    omega.
+    lia.
     apply max_lub; auto.
   Qed.
 
@@ -859,19 +859,19 @@ End tree_branch.
 Section tree_irredundant.
 
   Variables (X : Type) (R : X -> X -> Prop).
-  
+
   Hypothesis Rdec : forall x y, { R x y } + { ~ R x y }.
 
   (* Irredundant tree : no branch is good for R *)
-  
+
   Definition tree_irred t := forall b, tree_branch t b -> bad R (rev b).
-  
+
   Definition tree_good_or_irred t : { b | tree_branch t b /\ good R (rev b) } + { tree_irred t }.
   Proof.
     destruct (finite_t_decide (fun l => bad R (rev l)) (fun l => good R (rev l)) (tree_branch_finite_t t)); auto.
     intros x _; destruct (good_bad_dec _ Rdec (rev x)); auto.
   Qed.
-  
+
   Definition tree_irred_dec t : { tree_irred t } + { ~ tree_irred t }.
   Proof.
     destruct (tree_good_or_irred t) as [ (b & H1 & H2) | ]; auto.

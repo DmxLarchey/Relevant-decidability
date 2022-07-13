@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith List Max Omega.
+Require Import Arith List Max Lia.
 
 Require Import rel_utils list_utils good_base finite.
 
@@ -19,8 +19,8 @@ Section Bar_type.
 
   Inductive bar_t l : Type :=
     | in_bar_t0 : P l -> bar_t l
-    | in_bar_t1 : (forall a, bar_t (a::l)) -> bar_t l. 
-  
+    | in_bar_t1 : (forall a, bar_t (a::l)) -> bar_t l.
+
   Fact in_bar_t_inv l : bar_t l -> P l + forall a, bar_t (a::l).
   Proof.
     induction 1 using bar_t_rect; [ left | right ]; auto.
@@ -34,7 +34,7 @@ Section Bar_type.
     exists n; auto.
     apply (IH (f n) f (S n)); auto.
   Qed.
-  
+
   Theorem bar_t_inv : bar_t nil -> forall f, { m | P (pfx_rev f m) }.
   Proof.
     intros H f; apply bar_t_recursion with (1 := H) (n := 0); auto.
@@ -69,7 +69,7 @@ Proof.
   apply in_bar_t0, le_0_n.
   generalize (IHn l); clear IHn.
   induction 1 using bar_t_rect.
-  apply in_bar_t1; intro. 
+  apply in_bar_t1; intro.
   apply in_bar_t0; simpl; apply le_n_S; auto.
   apply in_bar_t1; auto.
 Qed.
@@ -94,14 +94,14 @@ Section Bar_lift.
   Let bar_lift1 k : bar_t P k -> forall u v, k = v++u -> bar_t (fun v => P (v++u)) v.
   Proof.
     induction 1 as [ k Hk | k Hk IH ] using bar_t_rect; intros u v H.
-    
+
     apply in_bar_t0; subst; auto.
-    
+
     apply in_bar_t1; intros a.
     apply (IH a u (a::v)).
     simpl; f_equal; auto.
   Qed.
-  
+
   Let bar_lift2 u v : bar_t (fun v => P (v++u)) v -> bar_t P (v++u).
   Proof.
     induction 1 as [ v Hv | v Hv IH ] using bar_t_rect.
@@ -114,8 +114,8 @@ Section Bar_lift.
   Proof.
     intros H; apply bar_lift1 with (1 := H); auto.
   Qed.
-  
-  Theorem bar_t_lift2 u : bar_t (fun v => P (v++u)) nil -> bar_t P u. 
+
+  Theorem bar_t_lift2 u : bar_t (fun v => P (v++u)) nil -> bar_t P u.
   Proof.
     apply bar_lift2.
   Qed.
@@ -125,9 +125,9 @@ End Bar_lift.
 Section Bar_subst_eq.
 
   Variable (A : Type) (P : list A -> Prop) (a b : A).
-  
+
   Hypothesis Hab : forall mm ll, P (mm++a::ll) -> P (mm++b::ll).
-  
+
   Let bar_subst_eq_rec l : bar_t P l -> forall mm ll, l = mm++a::ll -> bar_t P (mm++b::ll).
   Proof.
     induction 1 as [ l Hl | l Hl IH ] using bar_t_rect; intros; subst.
@@ -135,7 +135,7 @@ Section Bar_subst_eq.
     apply in_bar_t1; intros c.
     apply (IH c (c::mm)); auto.
   Qed.
-  
+
   Fact bar_t_subst_eq mm ll : bar_t P (mm++a::ll) -> bar_t P (mm++b::ll).
   Proof.
     intros H; apply bar_subst_eq_rec with (1 := H); auto.
@@ -154,19 +154,19 @@ Section Bar_inter.
   Proof.
     induction 1 as [ u Hu | u Hu IHu ] using bar_t_rect.
     induction 1 as [ v Hv | v Hv IHv ] using bar_t_rect.
-    
+
     apply in_bar_t0; auto.
-    
+
     apply in_bar_t1; intros a.
     apply IHv, HP; auto.
-    
+
     induction 1 as [ v Hv | v Hv IHv ] using bar_t_rect.
-    
+
     apply in_bar_t1; intros a.
     apply IHu.
     apply in_bar_t0.
     apply HQ; auto.
-    
+
     apply in_bar_t1; intros a.
     apply IHu; auto.
   Qed.
@@ -175,9 +175,9 @@ End Bar_inter.
 
 Section Bar_t_relmap.
 
-  Variables (A B : Type) (R : A -> B -> Prop) 
+  Variables (A B : Type) (R : A -> B -> Prop)
             (HR : forall a, { b | R a b })
-            (P : list A -> Prop) 
+            (P : list A -> Prop)
             (Q : list B -> Prop)
             (HPQ : forall ll mm, Forall2 R ll mm -> Q mm -> P ll).
 
@@ -186,7 +186,7 @@ Section Bar_t_relmap.
     intros H1 H2.
     revert ll H1.
     induction H2 as [ mm Hmm | mm Hmm IH ] using bar_t_rect; intros ll H1.
-    
+
     apply in_bar_t0, HPQ with (1 := H1); auto.
     apply in_bar_t1; intros a.
     destruct (HR a) as (b & Hb).
@@ -198,7 +198,7 @@ End Bar_t_relmap.
 Section Bar_map_inv.
 
   Variables (A B : Type) (f : A -> B)
-            (P : list A -> Prop) 
+            (P : list A -> Prop)
             (Q : list B -> Prop)
             (HPQ : forall ll, Q (map f ll) -> P ll).
 
@@ -210,19 +210,19 @@ Section Bar_map_inv.
     intros ll mm H.
     rewrite Forall2_exchg, <- Forall2_map_right, Forall2_eq in H.
     subst; auto.
-    rewrite Forall2_exchg, <- Forall2_map_right, Forall2_eq; auto. 
+    rewrite Forall2_exchg, <- Forall2_map_right, Forall2_eq; auto.
   Qed.
-  
+
 End Bar_map_inv.
 
 Section Bar_map.
 
   Variables (A B : Type) (f : A -> B) (Hf : forall b, { a | b = f a })
-            (P : list A -> Prop) 
+            (P : list A -> Prop)
             (Q : list B -> Prop)
             (HPQ : forall ll, P ll -> Q (map f ll)).
 
-  Lemma bar_t_map ll : bar_t P ll -> bar_t Q (map f ll). 
+  Lemma bar_t_map ll : bar_t P ll -> bar_t Q (map f ll).
   Proof.
     apply bar_t_relmap with (R := fun b a => b = f a); auto.
     clear ll.
@@ -230,7 +230,7 @@ Section Bar_map.
     rewrite <- Forall2_map_right, Forall2_eq in H; subst; auto.
     rewrite <- Forall2_map_right, Forall2_eq; auto.
   Qed.
-  
+
 End Bar_map.
 
 Section fan_t.
@@ -240,12 +240,12 @@ Section fan_t.
   Notation mono := ((fun X (P : list X -> Prop) => forall x l, P l -> P (x::l)) _).
 
   Variables (X : Type) (P : list X -> Prop) (HP : mono P).
-  
+
   Let P_mono l m : P m -> P (l++m).
   Proof.
     induction l; simpl; auto.
   Qed.
-  
+
   Let V u := fun lw => Forall (fun v => P (v++u)) (list_fan lw).
 
   Let V_mono u : mono (V u).
@@ -258,16 +258,16 @@ Section fan_t.
   Qed.
 
   Let bar_V u : bar_t P u -> bar_t (V u) nil.
-  Proof.    
+  Proof.
     induction 1 as [ u Hu | u Hu IHu ] using bar_t_rect.
-    
+
     apply in_bar_t0; unfold V.
-    simpl. 
+    simpl.
     constructor; simpl; auto.
-    
+
     apply in_bar_t1; intros w.
     induction w as [ | a w IHw ].
-    
+
     apply in_bar_t0.
     unfold V; simpl.
     constructor.
@@ -292,7 +292,7 @@ Section fan_t.
     intro; rewrite app_ass; auto.
   Qed.
 
-  Theorem fan_t_on_list : bar_t P nil 
+  Theorem fan_t_on_list : bar_t P nil
                        -> bar_t (fun ll => Forall P (list_fan ll)) nil.
   Proof.
     intros H.
@@ -312,12 +312,12 @@ Inductive bar_rel_t X (R : X -> X -> Prop) (P : X -> Prop) x :=
 Section fan_rel.
 
   Variables (X : Type) (R : X -> X -> Prop).
-  
-  Variables (next : X -> list X) (next_R : forall x y, In y (next x) -> R x y) 
+
+  Variables (next : X -> list X) (next_R : forall x y, In y (next x) -> R x y)
             (P : X -> Prop) (HP : forall x y, R x y -> P x -> P y).
 
   Let N l := flat_map next l.
- 
+
   Fact next_P l : Forall P l -> Forall P (N l).
   Proof.
     do 2 rewrite Forall_forall; unfold N.
@@ -326,13 +326,13 @@ Section fan_rel.
     destruct Hy as (x & H1 & H2).
     generalize (next_R _ _ H2) (H _ H1); apply HP.
   Qed.
-  
+
   Fact iter_N_P n l : Forall P l -> Forall P (iter N n l).
   Proof.
     intros H; induction n as [ | n IHn ]; simpl; auto.
     apply next_P, IHn.
   Qed.
-  
+
   Fact iter_N_app a b l x : In x (iter N (a+b) l) -> exists y, In x (iter N a (y::nil)) /\ In y (iter N b l).
   Proof.
     rewrite iter_app.
@@ -347,10 +347,10 @@ Section fan_rel.
     apply in_flat_map.
     exists y; auto.
   Qed.
-  
+
   Fact iter_N_S n l x : In x (iter N (S n) l) -> exists y, In x (iter N n (y::nil)) /\ In y (N l).
   Proof.
-    replace (S n) with (n+1) by omega.
+    replace (S n) with (n+1) by lia.
     intros H.
     apply iter_N_app in H; auto.
   Qed.
@@ -372,7 +372,7 @@ Section fan_rel.
     destruct H0 as (ln & Hln).
     exists (S (lmax ln)).
     intros [ | m ] Hm.
-    omega.
+    lia.
     apply Forall_forall.
     intros y Hy.
     destruct iter_N_S with (1 := Hy) as (z & H1 & H2).
@@ -382,17 +382,17 @@ Section fan_rel.
     apply H5; auto.
     apply le_trans with (lmax ln).
     apply lmax_In; auto.
-    omega.
+    lia.
   Qed.
-  
+
 End fan_rel.
 
 Section fan_alt.
 
-  Variables (X : Type) 
+  Variables (X : Type)
             (R : X -> X -> Prop) (R_fin : forall x, finite_t (R x))
             (P : X -> Prop) (HP : forall x y, R x y -> P x -> P y).
-            
+
   Let R_mono n : forall x y, rel_iter R n x y -> P x -> P y.
   Proof.
     induction n as [ | n IHn ]; simpl; intros x y H Hx.
@@ -400,11 +400,11 @@ Section fan_alt.
     destruct H as (z & H1 & H2).
     apply IHn with (1 := H2), HP with (1 := H1), Hx.
   Qed.
-  
+
   (* If R is (computationnaly) finitary and P is R-monotonic,
      if P is bound to be reached from x, then P is bound to be
      reached uniformly from x *)
-  
+
   Theorem fan_alt_t x : bar_rel_t R P x -> { n | forall m y, n <= m -> rel_iter R m x y -> P y }.
   Proof.
     induction 1 as [ x Hx | x Hx IHx ].
@@ -415,13 +415,13 @@ Section fan_alt.
       apply sig_invert_t in IH.
       destruct IH as (mm & Hmm).
       exists (S (lmax mm)); intros [ | m ] y Hm.
-      - omega.
+      - lia.
       - intros (z & H1 & H2).
         apply Hll in H1.
         destruct (Forall2_In_inv_left Hmm _ H1) as (u & H3 & H4).
         apply H4 with m; auto.
-        apply le_trans with (1 := lmax_In _ _ H3); omega.
+        apply le_trans with (1 := lmax_In _ _ H3); lia.
   Qed.
-  
+
 End fan_alt.
 

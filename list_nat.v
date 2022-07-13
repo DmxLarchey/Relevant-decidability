@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Max Omega List Permutation.
+Require Import Arith Max Lia List Permutation.
 
 Require Import list_in.
 
@@ -26,30 +26,30 @@ Proof.
 Qed.
 
 Notation lsum := (fold_right plus 0).
- 
+
 Fact lsum_prop x ll : In x ll -> x <= lsum ll.
 Proof.
   induction ll as [ | y ll IH ]; simpl.
   intros [].
   intros [ | H ]; subst.
-  omega.
-  specialize (IH H); omega.
+  lia.
+  specialize (IH H); lia.
 Qed.
 
 Fact lsum_perm l m : Permutation l m -> lsum l = lsum m.
 Proof.
-  induction 1; simpl; auto; omega.
+  induction 1; simpl; auto; lia.
 Qed.
 
 Fact lsum_app l r : lsum (l++r) = lsum l + lsum r.
 Proof.
-  induction l; simpl; auto; omega.
+  induction l; simpl; auto; lia.
 Qed.
 
 Section lmax.
 
   Definition lmax := fold_right max 0.
-  
+
   Fact lmax_fix x l : lmax (x::l) = max x (lmax l).
   Proof. auto. Qed.
 
@@ -65,13 +65,13 @@ Section lmax.
   Fact lmax_In x ll : In x ll -> x <= lmax ll.
   Proof.
     induction ll as [ | y ll IH ].
-    simpl; omega.
+    simpl; lia.
     rewrite lmax_fix.
     intros [ H | H ]; subst.
     apply le_max_l.
     apply le_trans with (1 := IH H), le_max_r.
   Qed.
-  
+
   Fact lmax_inv l : { l = nil } + { In (lmax l) l }.
   Proof.
     induction l as [ | x l IHl ].
@@ -90,10 +90,10 @@ Section lmax.
   Fact lmax_inv' l : 0 < lmax l -> { x | In x l /\ x = lmax l }.
   Proof.
     intros H0; destruct (lmax_inv l) as [ H | H ].
-    exfalso; subst; simpl in H0; omega.
+    exfalso; subst; simpl in H0; lia.
     exists (lmax l); auto.
   Qed.
-  
+
   Fact lmax_map_inv X (f : X -> nat) l : l <> nil -> { x | In x l /\ f x = lmax (map f l) }.
   Proof.
     intros H0.
@@ -107,21 +107,21 @@ Section lmax.
   Fact lmax_inv_t l : 0 < lmax l -> { x : _ & { _ : In_t x l | x = lmax l } }.
   Proof.
     induction l as [ | x l IH ].
-    simpl; omega.
+    simpl; lia.
     intros H0.
     destruct (eq_nat_dec (lmax l) 0) as [ H1 | H1 ].
 
     rewrite lmax_fix, H1, max_0_r in H0.
     exists x; split; simpl; auto.
     rewrite H1, max_0_r; auto.
-    
+
     destruct IH as (z & H2 & H3).
-    omega.
+    lia.
     destruct (le_lt_dec x z) as [ H4 | H4 ].
     exists z; split; simpl; auto.
-    rewrite max_r; omega.
+    rewrite max_r; lia.
     exists x; split; simpl; auto.
-    rewrite max_l; omega.
+    rewrite max_l; lia.
   Qed.
 
   Fact lmax_0_inv l : lmax l = 0 -> (In_t 0 l + { l = nil })%type.
@@ -136,22 +136,22 @@ Section lmax.
     rewrite <- E, max_0_r in H.
     subst x; left; left; auto.
   Qed.
-  
+
   Fact lmax_app l m : lmax (l++m) = max (lmax l) (lmax m).
   Proof.
     induction l as [ | x l IH ]; simpl; auto.
     rewrite IH; apply max_assoc.
   Qed.
-  
+
   Variable (f : nat -> nat) (Hf : forall m n, m <= n -> f m <= f n).
-  
+
   Fact max_monotone n m : f (max n m) = max (f n) (f m).
   Proof.
     symmetry; destruct (max_dec n m) as [ H | H ]; rewrite H.
     apply max_l, Hf; rewrite <- H; apply le_max_r.
     apply max_r, Hf; rewrite <- H; apply le_max_l.
   Qed.
-  
+
   Fact lmax_mono l : l <> nil -> lmax (map f l) = f (lmax l).
   Proof.
     induction l as [ | x [ | y l ] IH ]; simpl.
@@ -160,19 +160,19 @@ Section lmax.
     intros _; rewrite max_monotone; f_equal.
     apply IH; discriminate.
   Qed.
-  
+
 End lmax.
 
 Fixpoint list_n n := match n with 0 => nil | S n => n::list_n n end.
-  
+
 Fact list_n_prop n x : x < n <-> In x (list_n n).
 Proof.
   revert x; induction n as [ | ? IH ]; intros ?.
-  split. 
-  omega.
+  split.
+  lia.
   intros [].
   simpl; rewrite <- IH.
-  split; omega.
+  split; lia.
 Qed.
 
 Fact list_n_length x : length (list_n x) = x.
@@ -180,9 +180,9 @@ Proof. induction x; simpl; f_equal; auto. Qed.
 
 Fact largest_nat_prefix n (P : nat -> Prop) : (forall i, i <= n -> { P i } + { ~ P i })
                                            -> P 0
-                                           -> { i | i <= n 
-                                                 /\ P i 
-                                                 /\ (P (S i) -> n <= i) 
+                                           -> { i | i <= n
+                                                 /\ P i
+                                                 /\ (P (S i) -> n <= i)
                                                  /\ forall j, j <= i -> P j }.
 Proof.
   revert P.
@@ -191,21 +191,21 @@ Proof.
   exists 0.
   repeat split; auto.
   intros j Hj.
-  cutrewrite (j = 0); auto; omega.
-  
-  destruct (HP 1) as [ H1 | H1 ]; try omega.
+  cutrewrite (j = 0); auto; lia.
+
+  destruct (HP 1) as [ H1 | H1 ]; try lia.
 
   destruct (IHn (fun x => P (S x))) as (i & H3 & H4 & H5 & H6); auto.
-  intros; apply  HP; omega.
-  exists (S i); repeat split; auto. 
-  omega.
-  intros H'; apply H5 in H'; omega.
+  intros; apply  HP; lia.
+  exists (S i); repeat split; auto.
+  lia.
+  intros H'; apply H5 in H'; lia.
   intros [ | j ]; auto.
-  intros H7; apply H6; omega.
-  
+  intros H7; apply H6; lia.
+
   exists 0; repeat split; auto.
-  omega.
+  lia.
   tauto.
-  intros j Hj; cutrewrite (j=0); auto; omega.
+  intros j Hj; cutrewrite (j=0); auto; lia.
 Qed.
 

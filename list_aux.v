@@ -11,8 +11,6 @@ Require Import Arith.
 Require Import List.
 Require Import Permutation.
 
-Require Omega.
-
 Require Import list_in.
 Require Import list_perm.
 Require Import list_nat.
@@ -22,7 +20,7 @@ Set Implicit Arguments.
 Section aux.
 
   Variable (X Y : Type).
-  
+
   Implicit Type (f : X -> Y) (g : X -> list Y).
 
   Fact map_eq_nil f ll : map f ll = nil <-> ll = nil.
@@ -31,7 +29,7 @@ Section aux.
   Qed.
 
   Fact map_inj f l m :
-                (forall x y, f x = f y -> x = y) 
+                (forall x y, f x = f y -> x = y)
               -> map f l = map f m -> l = m.
   Proof.
     intros Hf; revert m.
@@ -39,8 +37,8 @@ Section aux.
     simpl in H; injection H; clear H; intros; f_equal; auto.
   Qed.
 
-  Fact flat_map_eq_nil g l : 
-                 flat_map g l = nil 
+  Fact flat_map_eq_nil g l :
+                 flat_map g l = nil
               -> forall x, In x l -> g x = nil.
   Proof.
     induction l as [ | x l IH ];simpl.
@@ -49,7 +47,7 @@ Section aux.
     intros ? [ ? | ? ]; subst; auto.
   Qed.
 
-  Fact flat_map_length g l : length (flat_map g l) 
+  Fact flat_map_length g l : length (flat_map g l)
                            = lsum (map (fun x => length (g x)) l).
   Proof.
     induction l; simpl; auto.
@@ -61,7 +59,7 @@ Section aux.
     induction l; simpl; auto.
     rewrite app_ass; f_equal; auto.
   Qed.
-  
+
   Fact flat_map_ext g h ll : (forall x, In x ll -> g x = h x)
                            -> flat_map g ll = flat_map h ll.
   Proof.
@@ -76,9 +74,9 @@ Section aux.
   Qed.
 
   Section flat_map_map.
- 
+
     Variable (A B : Type) (f : X -> list Y) (g : A -> X) (h : Y -> B).
-  
+
     Fact flat_map_map ll : flat_map f (map g ll) = flat_map (fun x => f (g x)) ll.
     Proof.
       induction ll; simpl; f_equal; auto.
@@ -89,7 +87,7 @@ Section aux.
       induction ll; simpl; f_equal; auto.
       rewrite map_app; f_equal; auto.
     Qed.
-  
+
   End flat_map_map.
 
   Fact flat_map_perm g h ll : (forall x, In x ll -> g x ~p h x) -> flat_map g ll ~p flat_map h ll.
@@ -100,22 +98,22 @@ Section aux.
     apply Permutation_app.
     apply H; left; auto.
     apply IH; intros; apply H; right; auto.
-  Qed.    
+  Qed.
 
   Definition list_flatten := fold_right (@app X) nil.
 
   Fact list_flatten_spec ll x : In x (list_flatten ll) <-> exists l, In x l /\ In l ll.
   Proof.
     split.
-    
+
     revert x; induction ll as [ | y ll IH ]; simpl.
     intros _ [].
-    intros x Hx. 
+    intros x Hx.
     apply in_app_or in Hx; destruct Hx as [ Hx | Hx ].
     exists y; tauto.
     destruct (IH _ Hx) as (z & H1 & H2).
     exists z; tauto.
-    
+
     intros (l & H1 & H2); revert x l H1 H2.
     induction ll as [ | y ll IH ]; simpl; intros x l H1 H2; auto.
     destruct H2 as [ H2 | H2 ]; subst; apply in_or_app.
@@ -151,11 +149,11 @@ Proof.
   induction ll as [ | x ll IH ]; simpl; split; auto.
   intros [].
   intros ( ? & [] & _).
-  
+
   intros [ H | H ].
   exists x; tauto.
   destruct (proj1 IH H) as (y & ? & ?); exists y; auto.
-  
+
   intros (y & [ H1 | H1 ] & H2); subst; try tauto.
   right; rewrite IH; exists y; auto.
 Qed.
@@ -191,7 +189,7 @@ Section tails.
     intros ( [ | ] & H1 & H2).
     apply H2; auto.
     discriminate H1.
-    
+
     split.
     intros [ H | H ].
     subst; exists (x::nil); simpl; split; auto; discriminate.
@@ -209,20 +207,20 @@ Section tails.
     left; auto.
     right; exists (z::l); split; auto; discriminate.
   Qed.
-    
+
   Fact tail_In_t ll l x : In_t x l -> In_t l (tails ll) -> In_t x ll.
   Proof.
     induction ll as [ | y ll ]; simpl.
     intros _ [].
     intros H1 [ H2 | H2 ]; subst; tauto.
   Defined.
-  
+
   Fact tail_In ll l x : In x l -> In l (tails ll) -> In x ll.
   Proof.
     induction ll as [ | y ll ]; simpl.
     intros _ [].
     intros H1 [ H2 | H2 ]; subst; tauto.
-  Defined.    
+  Defined.
 
 End tails.
 

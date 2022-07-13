@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Omega List Permutation.
+Require Import Arith List Permutation.
 
 Require Import tacs rel_utils list_utils finite.
 
@@ -31,11 +31,11 @@ Section LR2_decider.
   Definition redund (y x : Seq) := list_contract Form_eq_dec (fst x) (fst y) /\ snd x = snd y.
 
   Infix "≺r" := redund (at level 70, no associativity).
-  
-  (* We transport the af_t property from a product (Ramsey theorem) 
+
+  (* We transport the af_t property from a product (Ramsey theorem)
      using the very useful af_t_relmap ...
-     
-     It works like a charm on Sigma types, try with af_t_comap 
+
+     It works like a charm on Sigma types, try with af_t_comap
      instead and you will feel the difference ...
   *)
 
@@ -46,7 +46,7 @@ Section LR2_decider.
                           (af_t_eq_finite (sf_Seq_finite_t s))).
     apply af_t_relmap with (f := fun x y => proj1_sig (fst x) = fst (proj1_sig y)
                                          /\ proj1_sig (snd x) = snd (proj1_sig y)).
-                                         
+
     intros ((ga,a) & H); simpl.
     red in H.
     assert (Forall (sf_Seq s) ga) as H1.
@@ -56,21 +56,21 @@ Section LR2_decider.
     assert (sf_Seq s a) as H2.
       apply H; right; apply sf_Form_refl.
     exists (exist _ ga H1, exist _ a H2); auto.
-    
+
     intros ((? & ?) & (? & ?)) ((? & ?) & (? & ?)) ((?,?) & ?) ((?,?) & ?); simpl.
-    intros (? & ?) (? & ?); subst; unfold rel_prod; simpl. 
+    intros (? & ?) (? & ?); subst; unfold rel_prod; simpl.
     intros []; split; auto.
   Qed.
 
   Theorem LR2_decider : forall s, { t | proof LR2_rules s t } + { forall t, ~ proof LR2_rules s t }.
   Proof.
     apply proof_decider with (1 := LR2_rules_finite_t) (sf := LR_sf) (redund := redund).
- 
+
     apply LR_sf_refl.
     apply LR_sf_trans.
     apply sf_LR2_rules.
     2: intros []; apply Kripke_LR2.
-    
+
     (* contraction is height preserving (Curry's lemma) *)
 
     unfold redund; intros (ga,a) (de,b) t; simpl.

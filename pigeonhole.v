@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Omega List Permutation.
+Require Import Arith Lia List Permutation.
 
 Require Import tacs list_utils good_base.
 
@@ -18,28 +18,28 @@ Section pigeon.
   Variable (X : Type).
 
   Implicit Types (l m : list X).
-  
+
   Definition list_has_dup := good (@eq X).
-  
+
   Fact list_hd_cons_inv x l : list_has_dup (x::l) -> In x l \/ list_has_dup l.
   Proof.
     intros H.
     apply good_cons_inv in H.
     destruct H as [ (y & ? & []) | H ]; auto.
   Qed.
-  
+
   Fact in_list_hd0 x l : In x l -> list_has_dup (x::l).
   Proof. constructor 1 with x; auto. Qed.
-  
+
   Fact in_list_hd1 x l : list_has_dup l -> list_has_dup (x::l).
   Proof. constructor 2; auto. Qed.
-  
+
   Fact list_has_dup_app_left l m : list_has_dup m -> list_has_dup (l++m).
   Proof. apply good_app_left. Qed.
-  
+
   Fact list_has_dup_app_right l m : list_has_dup l -> list_has_dup (l++m).
   Proof. apply good_app_right. Qed.
-  
+
   Fact list_hd_eq_perm l m : l ~p m -> list_has_dup l -> list_has_dup m.
   Proof.
     induction 1 as [ | x l m H1 IH1 | x y l | ]; auto.
@@ -47,7 +47,7 @@ Section pigeon.
     apply list_hd_cons_inv in H.
     destruct H as [ H | H ].
     apply Permutation_in with (1 := H1) in H.
-    
+
     apply in_list_hd0; auto.
     apply in_list_hd1; auto.
     intros H.
@@ -60,7 +60,7 @@ Section pigeon.
     apply in_list_hd0; right; auto.
     do 2 apply in_list_hd1; auto.
   Qed.
-  
+
   Fact incl_right_cons_choose x l m : incl m (x::l) -> In x m \/ incl m l.
   Proof.
     intros H.
@@ -74,7 +74,7 @@ Section pigeon.
     apply Permutation_in with (1 := Permutation_sym H1).
     rewrite (H2 y); left; auto.
   Qed.
-  
+
   Fact repeat_choice_two (x : X) m : (forall a, In a m -> a = x) -> (exists m', m = x::x::m') \/ m = nil \/ m = x::nil.
   Proof.
     intros H.
@@ -87,45 +87,45 @@ Section pigeon.
     left; auto.
   Qed.
 
-  Fact incl_right_cons_incl_or_lhd_or_perm m x l : incl m (x::l) -> incl m l 
-                                                                 \/ list_has_dup m 
+  Fact incl_right_cons_incl_or_lhd_or_perm m x l : incl m (x::l) -> incl m l
+                                                                 \/ list_has_dup m
                                                                  \/ exists m', m ~p x::m' /\ incl m' l.
   Proof.
     intros H.
     apply incl_cons_rinv in H.
     destruct H as (m1 & m2 & H1 & H2 & H3).
-    destruct (repeat_choice_two _ H2) as [ (m3 & H4) | [ H4 | H4 ] ]; 
+    destruct (repeat_choice_two _ H2) as [ (m3 & H4) | [ H4 | H4 ] ];
       subst m1; simpl in H1; clear H2.
-    
+
     apply Permutation_sym in H1.
     right; left.
     apply list_hd_eq_perm with (1 := H1).
     apply in_list_hd0; left; auto.
-    
+
     left.
     intros ? H; apply H3; revert H.
     apply Permutation_in; auto.
-    
+
     right; right.
     exists m2; auto.
   Qed.
- 
-  Fact length_le_and_incl_implies_dup_or_perm l :  
-               forall m, length l <= length m 
-                      -> incl m l 
+
+  Fact length_le_and_incl_implies_dup_or_perm l :
+               forall m, length l <= length m
+                      -> incl m l
                       -> list_has_dup m \/ m ~p l.
   Proof.
-  
+
     induction l as [ [ | x l ] IHl ] using list_length_rect.
-      
+
     intros [ | x ] _ H.
     right; auto.
     specialize (H x); simpl in H; contradict H; left; auto.
-    
+
     intros [ | y m ] H1 H2.
     apply le_Sn_0 in H1; destruct H1.
     simpl in H1; apply le_S_n in H1.
-    apply incl_cons_linv in H2. 
+    apply incl_cons_linv in H2.
     destruct H2 as [ [ H3 | H3 ] H4 ].
     subst y.
     apply incl_right_cons_choose in H4.
@@ -159,29 +159,29 @@ Section pigeon.
           perm_skip, Permutation_sym,
           Permutation_trans with (1 := Hl'),
           perm_skip, Permutation_sym; auto.
-    apply Permutation_length in Hl'; simpl in Hl' |- *; omega.
+    apply Permutation_length in Hl'; simpl in Hl' |- *; lia.
     apply Permutation_length in Hl'.
     apply Permutation_length in H4.
-    simpl in Hl', H4; omega.
+    simpl in Hl', H4; lia.
   Qed.
-  
-  Theorem finite_pigeon_hole l m : 
-       length l < length m 
-    -> incl m l 
+
+  Theorem finite_pigeon_hole l m :
+       length l < length m
+    -> incl m l
     -> exists x aa bb cc, m = aa++x::bb++x::cc.
   Proof.
     intros H1 H2.
     assert (list_has_dup m) as Hm.
- 
-    destruct (@list_prefix _ m (length l)) 
-      as (m1 & m2 & H3 & H4); try omega; subst m.
+
+    destruct (@list_prefix _ m (length l))
+      as (m1 & m2 & H3 & H4); try lia; subst m.
     symmetry in H4.
     destruct (@length_le_and_incl_implies_dup_or_perm l m1) as [ H5 | H5 ].
     rewrite H4; auto.
-    intros ? ?; apply H2, in_or_app; auto. 
+    intros ? ?; apply H2, in_or_app; auto.
     apply list_has_dup_app_right; auto.
     destruct m2 as [ | x m2 ].
-    rewrite <- app_nil_end in H1; omega.
+    rewrite <- app_nil_end in H1; lia.
     assert (In x m1) as Hm1.
       apply Permutation_in with (1 := Permutation_sym H5).
       apply H2, in_or_app; right; simpl; auto.
@@ -189,7 +189,7 @@ Section pigeon.
     destruct Hm1 as (l1 & l2 & ?); subst.
     rewrite app_ass; simpl.
     apply list_has_dup_app_left, in_list_hd0, in_or_app; simpl; auto.
-    
+
     apply good_inv in Hm.
     destruct Hm as (aa & x & bb & y & cc & ? & ?); subst m y.
     exists x, aa, bb, cc; auto.
@@ -200,10 +200,10 @@ End pigeon.
 Section pigeon_rel.
 
   Variable (X Y : Type) (R : X -> Y -> Prop).
-  
+
   Implicit Types (lx : list X) (ly : list Y).
-  
-  Fact list_rel_choice lx ly : 
+
+  Fact list_rel_choice lx ly :
        (forall x, In x lx -> exists y, R x y /\ In y ly)
      -> exists ly', Forall2 R lx ly' /\ incl ly' ly.
   Proof.
@@ -213,10 +213,10 @@ Section pigeon_rel.
     apply Forall2_conj, proj2, Forall2_right_Forall, proj1 in Hmm.
     red; apply Forall_forall; auto.
   Qed.
-  
+
   Theorem pigeon_hole_rel lx ly :
             (forall x, In x lx -> exists y, R x y /\ In y ly)
-         -> length ly < length lx 
+         -> length ly < length lx
          -> exists a x1 b x2 c y, lx = a++x1::b++x2::c /\ In y ly /\ R x1 y /\ R x2 y.
   Proof.
     intros HR.
