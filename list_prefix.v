@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith List Omega.
+Require Import Arith List Lia.
 
 Require Import tacs.
 
@@ -33,25 +33,25 @@ Proof.
   revert ll; induction x as [ | x IHx ]; intros [ | u ll ] Hx.
   exists nil, nil; simpl; auto.
   exists nil, (u::ll); auto.
-  simpl in Hx; omega.
+  simpl in Hx; lia.
   destruct (IHx ll) as (l & r & H1 & H2).
-  simpl in Hx; omega.
+  simpl in Hx; lia.
   exists (u::l), r; simpl; split; f_equal; auto.
 Qed.
-    
+
 Fact list_split_second_half U (ll : list U) x : x <= length ll -> { l : _ & { r | ll = l++r /\ length r = x } }.
 Proof.
   intros Hx.
   destruct list_split_first_half with (ll := ll) (x := length ll - x)
     as (l & r & H1 & H2).
-  omega.
+  lia.
   exists l, r; split; auto.
   apply f_equal with (f := @length _) in H1.
   rewrite app_length in H1.
-  omega.
-Qed.  
+  lia.
+Qed.
 
-Section list_prefix. 
+Section list_prefix.
 
   Variables (X : Type).
 
@@ -65,7 +65,7 @@ Section list_prefix.
   Proof.
     revert f; induction n; intros f; simpl; auto.
   Qed.
-    
+
   Fact pfx_plus f a b : pfx f (a+b) = pfx f a ++ pfx (fun n => f (a+n)) b.
   Proof.
     revert f;
@@ -80,17 +80,17 @@ Section list_prefix.
     revert f; induction n as [ | n IHn ]; intros f; simpl.
     intros [].
     intros [ H | H ].
-    subst; exists 0; split; auto; omega.
+    subst; exists 0; split; auto; lia.
     destruct (IHn _ H) as (i & H1 & H2).
-    exists (S i); split; auto; omega.
-    
+    exists (S i); split; auto; lia.
+
     intros (i & H1 & H2); subst x.
     revert f i H1.
-    induction n as [ | n IH ]; intros f i Hi; try omega; simpl.
+    induction n as [ | n IH ]; intros f i Hi; try lia; simpl.
     destruct i.
     left; auto.
-    right. 
-    apply (IH (fun x => f (S x))); omega.
+    right.
+    apply (IH (fun x => f (S x))); lia.
   Qed.
 
   Fact pfx_eq f n l x r : pfx f n = l++x::r -> f (length l) = x.
@@ -103,10 +103,10 @@ Section list_prefix.
   Qed.
 
   Fixpoint list_fun_concat l f n : X :=
-    match l with 
+    match l with
       | nil  => f n
-      | x::l => 
-      match n with 
+      | x::l =>
+      match n with
         | 0   => x
         | S n => list_fun_concat l f n
       end
@@ -114,23 +114,23 @@ Section list_prefix.
 
   Fact lf_concat_pfx_lt ll f n : n < length ll -> exists l r, l ++ r = ll /\ l = pfx (list_fun_concat ll f) n.
   Proof.
-    revert n; induction ll as [ | x ll IH ]; intros [ | n ] Hn; simpl in Hn; try (exfalso; omega); simpl.
+    revert n; induction ll as [ | x ll IH ]; intros [ | n ] Hn; simpl in Hn; try (exfalso; lia); simpl.
     exists nil, (x::ll); auto.
     destruct (IH n) as (l & r & H1 & H2).
-    omega.
+    lia.
     exists (x::l), r; simpl; split; f_equal; auto.
   Qed.
-  
+
   Fact lf_concat_pfx_ge ll f n : length ll <= n -> pfx (list_fun_concat ll f) n = ll ++ pfx f (n - length ll).
   Proof.
     revert n; induction ll as [ | x ll IH ]; intros n Hn.
-    simpl; f_equal; omega.
+    simpl; f_equal; lia.
     destruct n.
-    simpl in Hn; omega.
+    simpl in Hn; lia.
     simpl.
     f_equal.
     apply IH.
-    simpl in Hn; omega.
+    simpl in Hn; lia.
   Qed.
 
 End list_prefix.
@@ -141,13 +141,13 @@ Proof.
 Qed.
 
 (* prefix of an infinite sequence, in reverse order *)
-   
+
 Section list_prefix_rev.
- 
+
   Variable X : Type.
 
-  Fixpoint pfx_rev f n : list X := 
-    match n with 
+  Fixpoint pfx_rev f n : list X :=
+    match n with
       | 0   => nil
       | S n => (f n)::(pfx_rev f n)
     end.
@@ -158,7 +158,7 @@ Section list_prefix_rev.
     f_equal; auto.
     f_equal; apply plus_comm.
   Qed.
-  
+
   Fact pfx_rev_S f a : pfx_rev f (S a) = pfx_rev (fun n => f (S n)) a ++ f 0 :: nil.
   Proof.
     generalize (pfx_rev_plus f a 1); intros H.
@@ -171,25 +171,25 @@ Section list_prefix_rev.
     induction n as [ | n IHn ]; intros f.
     simpl; auto.
     simpl pfx.
-    cutrewrite (S n = n+1); try omega.
+    cutrewrite (S n = n+1); try lia.
     rewrite pfx_rev_plus; simpl.
     f_equal; auto.
-  Qed.  
+  Qed.
 
   Fact pfx_rev_ext f g n : (forall x, x < n -> f x = g x) -> pfx_rev f n = pfx_rev g n.
   Proof.
-    induction n; simpl; auto; 
+    induction n; simpl; auto;
     intros H.
-    rewrite H; try omega.
+    rewrite H; try lia.
     f_equal; auto.
   Qed.
-  
+
   Fact pfx_rev_minus f n : pfx_rev f n = pfx (fun x => f (n - S x)) n.
   Proof.
     revert f; induction n as [ | n IHn ]; intros f; simpl; auto.
-    do 2 f_equal. omega.
+    do 2 f_equal. lia.
     apply IHn.
-  Qed.    
+  Qed.
 
   Fact pfx_rev_In f n x : In x (pfx_rev f n) <-> exists i, i < n /\ x = f i.
   Proof.
@@ -201,12 +201,12 @@ Section list_prefix_rev.
     subst; exists n; auto.
     destruct (IHn H) as (i & H1 & H2).
     exists i; split; auto.
-    
+
     intros (i & H1 & H2); subst x.
     revert i H1.
-    induction n as [ | n IH ]; intros i Hi; try omega; simpl.
+    induction n as [ | n IH ]; intros i Hi; try lia; simpl.
     destruct (le_lt_dec n i).
-    left; f_equal; omega.
+    left; f_equal; lia.
     right; apply IH; auto.
   Qed.
 
@@ -232,17 +232,17 @@ Fact pfx_rev_map X Y (h : X -> Y) f n : pfx_rev (fun n => h (f n)) n = map h (pf
 Proof.
   induction n; simpl; f_equal; auto.
 Qed.
- 
+
 Definition list_prefix X (ll : list X) n : n <= length ll -> { l : _ & { r | ll = l++r /\ length l = n } }.
 Proof.
   revert n; induction ll as [ | x ll IH ].
   intros [ | n ] Hn; exists nil, nil; split; auto.
-  exfalso; simpl in Hn; omega.
+  exfalso; simpl in Hn; lia.
   intros [ | n ] Hn.
   exists nil, (x::ll); auto.
   simpl in Hn.
   destruct (IH n) as (l & r & H1 & H2).
-  omega.
+  lia.
   subst.
   exists (x::l), r; auto.
 Qed.
@@ -251,11 +251,11 @@ Definition list_suffix X (ll : list X) n : n <= length ll -> { l : _ & { r | ll 
 Proof.
   intros H.
   destruct (@list_prefix _ ll (length ll - n)) as (l & r & H1 & H2).
-  omega.
+  lia.
   exists l, r; repeat split; auto.
   apply f_equal with (f := @length _) in H1.
   rewrite app_length in H1.
-  omega.
+  lia.
 Qed.
 
 Fact list_prefix_eq X (l r l' r' : list X) : l++r = l'++r' -> length l = length l' -> l = l' /\ r = r'.
@@ -263,7 +263,7 @@ Proof.
   revert l'; induction l as [ | x l IHl ]; intros [ | y l' ] H1 H2; auto; simpl in H2; try discriminate H2.
   simpl in H1; injection H1; clear H1; intros H1 H3; subst.
   destruct IHl with (1 := H1).
-  omega.
+  lia.
   subst; auto.
 Qed.
 
@@ -272,7 +272,7 @@ Proof.
   intros H1 H2; apply list_prefix_eq; auto.
   apply f_equal with (f := @length _) in H1.
   do 2 rewrite app_length in H1.
-  omega.
+  lia.
 Qed.
 
 Fact list_suffix_split X (l r l' r' : list X) : l++r = l'++r' -> length r <= length r' -> { m | l = l'++m /\ r' = m++r }.
@@ -282,7 +282,7 @@ Proof.
   apply f_equal with (f := @length _) in H1.
   simpl in H1.
   rewrite app_length in H1.
-  exfalso; omega.
+  exfalso; lia.
   exists (x::l); auto.
   injection H1; clear H1; intros H1 ?; subst y.
   destruct IHl with (1 := H1) as (m & H3 & H4); auto.

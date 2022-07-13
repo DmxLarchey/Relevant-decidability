@@ -11,8 +11,6 @@ Require Import List.
 Require Import Permutation.
 Require Import Arith.
 
-Require Omega.
-
 Require Import list_aux.
 Require Import list_perm.
 
@@ -46,8 +44,8 @@ Section list_prod.
   Proof.
     rewrite mult_comm; induction mm; simpl; auto.
     rewrite app_length, map_length; f_equal; auto.
-  Qed.   
-  
+  Qed.
+
   Fact list_prod_nil ll mm : list_prod ll mm = nil -> ll = nil \/ mm = nil.
   Proof.
     intros H.
@@ -89,7 +87,7 @@ Section list_prod.
   Proof.
     unfold list_prod; rewrite flat_map_app; apply Permutation_refl.
   Qed.
-  
+
   Fact list_prod_cons_left a ll mm : list_prod (a::ll) mm ~p list_prod (a::nil) mm ++ list_prod ll mm.
   Proof.
     apply (list_prod_app_left (a::nil)).
@@ -99,13 +97,13 @@ Section list_prod.
   Proof.
     apply (list_prod_app_right _ (a::nil)).
   Qed.
-  
+
   Let list_prod_perm_left ll mm nn : ll ~p mm -> list_prod ll nn ~p list_prod mm nn.
   Proof.
     intros; apply flat_map_perm.
     intros; apply Permutation_map; assumption.
   Qed.
-  
+
   Let list_prod_perm_right nn ll mm : ll ~p mm -> list_prod nn ll ~p list_prod nn mm.
   Proof.
     induction 1 as [ | | | l1 l2 l3 _ IH1 ]; simpl.
@@ -129,17 +127,17 @@ Section list_prod.
 
 End list_prod.
 
-Fact list_prod_map A A' B B' C (p : A' -> B' -> C) (f : A -> A') (g : B -> B') l m : 
+Fact list_prod_map A A' B B' C (p : A' -> B' -> C) (f : A -> A') (g : B -> B') l m :
      list_prod (fun a b => p (f a) (g b)) l m = list_prod p (map f l) (map g m).
 Proof.
   induction m; simpl; f_equal; auto.
   rewrite map_map; auto.
 Qed.
-  
+
 Fact map_list_prod A B C C' (p : A -> B -> C) (f : C -> C') l m : map f (list_prod p l m) = list_prod (fun a b => f (p a b)) l m.
 Proof.
   induction m; simpl; f_equal; auto.
   rewrite map_app.
   f_equal; auto.
   rewrite map_map; auto.
-Qed.    
+Qed.

@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import List Arith Omega.
+Require Import List Arith Lia.
 
 Set Implicit Arguments.
 
@@ -24,7 +24,7 @@ Section sublist.
   where "x <sl y" := (sublist x y).
 
   Fact sl_refl ll : ll <sl ll.
-  Proof. 
+  Proof.
     induction ll.
     constructor 1.
     constructor 2; auto.
@@ -35,22 +35,22 @@ Section sublist.
     constructor 3.
     apply sl_refl.
   Qed.
-  
+
   Fact sublist_length ll mm : ll <sl mm -> length ll <= length mm.
   Proof.
-    induction 1; simpl; auto; omega.
+    induction 1; simpl; auto; lia.
   Qed.
 
   Fact sublist_nil_inv ll : ll <sl nil -> ll = nil.
   Proof. inversion 1; auto. Qed.
 
   Fact sublist_inv_cons ll a : ll <sl a::nil -> ll = nil \/ ll = a::nil.
-  Proof. 
+  Proof.
     inversion_clear 1; auto.
     inversion_clear H0; auto.
     inversion_clear H0; auto.
   Qed.
-  
+
   Fact sublist_cons_inv a ll mm : a::ll <sl mm -> (exists mm', mm = a::mm' /\ ll <sl mm')
                                                \/ (exists b mm', mm = b::mm' /\ a::ll <sl mm').
   Proof.
@@ -72,7 +72,7 @@ Section sublist.
     destruct (IH _ _ eq_refl) as (u1 & u2 & ? & ? & ?); subst.
     exists (b::u1), u2; simpl; repeat split; auto.
     constructor 2; auto.
-    
+
     destruct m1 as [ | b m1 ]; simpl in H0; subst.
     exists nil, l1; simpl; repeat split; auto.
     constructor 1.
@@ -116,8 +116,8 @@ Section sublist.
     apply sublist_inv_cons in H2.
     destruct H2; subst; simpl; auto.
     right; exists r; auto.
-  Qed.    
-  
+  Qed.
+
   Fact sublist_snoc_inv ll mm x : ll <sl mm++x::nil -> ll <sl mm \/ exists l', l' <sl mm /\ ll = l'++x::nil.
   Proof.
     intros H.
@@ -139,7 +139,7 @@ Section sublist.
     destruct l; try discriminate Eq; simpl in Eq |- *.
     destruct m; try discriminate Eq; simpl in Eq |- *.
     subst; constructor 1.
-    
+
     destruct l as [ | a' l ]; simpl in Eq |- *.
     destruct m as [ | b' l ]; simpl in Eq |- *.
     subst; constructor 2; auto.
@@ -152,7 +152,7 @@ Section sublist.
     constructor 3.
     apply (IH _ m); auto.
   Qed.
-  
+
   Fact sl_erase l m r mm : l++m++r <sl mm -> l++r <sl mm.
   Proof.
     intros H; apply sl_erase_rec with (1 := H) (m := m); auto.
@@ -162,22 +162,22 @@ Section sublist.
   Proof.
     apply sl_erase with (l := nil) (m := a::nil).
   Qed.
-    
+
   Let sl_trans_rec l1 l2 : l1 <sl l2 -> forall mm l3, mm++l2 <sl l3 -> mm++l1 <sl l3.
   Proof.
     induction 1 as [ l1 | a l1 l2 H IH | a l1 l2 H IH ].
-    
+
     intros mm l3.
     cutrewrite (mm++l1 = mm++l1++nil).
     apply sl_erase.
     rewrite <- app_nil_end; auto.
-    
+
     intros mm l3 H3.
     cutrewrite (mm++a::l1 = (mm++a::nil)++l1).
     apply IH.
     rewrite app_ass; auto.
     rewrite app_ass; auto.
-    
+
     intros mm l3 H3.
     apply IH.
     apply sl_erase with (m := a::nil).
@@ -195,7 +195,7 @@ Section sublist.
     apply sl_refl.
     apply sl_trans with (1 := IH), sl_cons.
   Qed.
-  
+
   Fact sl_app_right ll mm : ll <sl ll++mm.
   Proof.
     induction ll; simpl.
@@ -212,7 +212,7 @@ Section sublist.
     apply sl_app_left.
     constructor 2; auto.
     constructor 3; auto.
-  Qed.  
+  Qed.
 
   Fact sl_In ll mm x : ll <sl mm -> In x ll -> In x mm.
   Proof.
@@ -234,9 +234,9 @@ Section sublist.
   Fact sublist_eq ll mm : ll <sl mm -> length mm <= length ll -> ll = mm.
   Proof.
     induction 1 as [ mm | a ll mm H IH | a ll mm H IH ].
-    destruct mm; simpl; try omega; auto.
+    destruct mm; simpl; try lia; auto.
     simpl; intros H1; apply le_S_n in H1; f_equal; auto.
-    simpl; intros H1; apply sublist_length in H; omega.
+    simpl; intros H1; apply sublist_length in H; lia.
   Qed.
 
 End sublist.
@@ -250,5 +250,5 @@ Proof.
   constructor 2; auto.
   constructor 3; auto.
 Qed.
- 
+
 

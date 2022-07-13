@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith List Omega.
+Require Import Arith List Lia.
 
 Require Import tacs.
 
@@ -42,13 +42,13 @@ Section Ge_Good.
     injection E; clear E; intros; subst; simpl in H; auto.
     apply H.
     destruct H as [ _ H ]; apply (IH H) with (1 := eq_refl).
-    
+
     intros H.
     induction w as [ | x w IH ]; simpl in H |- *; auto; split.
     apply H with (l := nil); auto.
     apply IH.
     intros l a r ?; apply (H (x::l)); simpl; f_equal; auto.
-  Qed.  
+  Qed.
 
   Fact Ge_ex_sg a b : Ge_ex a (b::nil) <-> b << a.
   Proof.
@@ -77,18 +77,18 @@ Section Ge_Good.
     intros (x & H1 & H2).
     apply in_app_or in H1.
     destruct H1; [ left | right ]; exists x; auto.
-    intros [ (x & ? & ?) | (x & ? & ?) ]; exists x; split; auto; 
+    intros [ (x & ? & ?) | (x & ? & ?) ]; exists x; split; auto;
       apply in_or_app; [ left | right ]; auto.
   Qed.
 
-  Inductive good : list A -> Prop := 
+  Inductive good : list A -> Prop :=
     | in_good_0 : forall ll a b, In b ll -> b << a -> good (a::ll)
     | in_good_1 : forall ll a, good ll -> good (a::ll).
 
   Inductive bad : list A -> Prop :=
     | in_bad_0 : bad nil
     | in_bad_1 : forall ll a, (forall b, In b ll -> ~ b << a) -> bad ll -> bad (a::ll).
-    
+
   Fact good_mono a ll : good ll -> good (a::ll).
   Proof.
     constructor 2; auto.
@@ -98,7 +98,7 @@ Section Ge_Good.
   Proof. intros H; inversion H. Qed.
 
   Fact good_cons_inv a ll : good (a::ll) -> Ge_ex a ll \/ good ll.
-  Proof. 
+  Proof.
     intros H; inversion_clear H.
     left; exists b; auto.
     right; auto.
@@ -144,7 +144,7 @@ Section Ge_Good.
     constructor 1 with (1 := H0); auto.
     apply IHll; contradict H.
     constructor 2; auto.
-    
+
     intros ? ?; apply good_bad_False with ll; auto.
   Qed.
 
@@ -162,7 +162,7 @@ Section Ge_Good.
     inversion_clear b.
     apply H0; left; auto.
   Qed.
- 
+
   Fact good_sublist ll mm : ll <sl mm -> good ll -> good mm.
   Proof.
     induction 1 as [ mm | a ll mm H IH | a ll mm H IH ].
@@ -191,7 +191,7 @@ Section Ge_Good.
     rewrite (le_plus_minus _ _ H), plus_comm, pfx_rev_plus.
     apply good_app_left.
   Qed.
- 
+
   Fact good_inv ll : good ll <-> exists l a m b r, ll = l++a::m++b::r /\ b << a.
   Proof.
     split.
@@ -201,7 +201,7 @@ Section Ge_Good.
     exists nil, a, m, b, r; subst; auto.
     destruct IH as (l & a & m & b & r & H1 & H2).
     exists (x::l), a, m, b, r; subst; auto.
-    
+
     intros (l & a & m & b & r & H1 & H2); subst.
     apply good_app_left.
     constructor 1 with b; auto.
@@ -211,52 +211,52 @@ Section Ge_Good.
   Fact good_pfx_rev_eq n f : good (pfx_rev f n) <-> exists i j, i < j < n /\ R (f i) (f j).
   Proof.
     rewrite good_inv; split.
-    
+
     intros (l & a & m & b & r & H1 & H2).
     exists (length r), (length (m++b::r)); split.
     apply f_equal with (f := @length _) in H1.
     rewrite pfx_rev_length in H1.
     rewrite H1.
-    do 3 (rewrite app_length; simpl); split; omega.
+    do 3 (rewrite app_length; simpl); split; lia.
     rewrite pfx_rev_eq with (1 := H1).
     cutrewrite (l++a::m++b::r = (l++a::m)++b::r) in H1.
     rewrite pfx_rev_eq with (1 := H1); auto.
     rewrite app_ass; simpl; auto.
-    
+
     intros (i & j & (H1 & H2) & H3).
-    exists (pfx_rev (fun x => f (S j + x)) (n - S j)), 
-           (f j), 
+    exists (pfx_rev (fun x => f (S j + x)) (n - S j)),
+           (f j),
            (pfx_rev (fun x => f (S i + x)) (j - S i)),
            (f i),
            (pfx_rev f i).
     split; auto.
-    assert (n = (n - S i) + S i) as H; try omega.
+    assert (n = (n - S i) + S i) as H; try lia.
     rewrite H at 1.
     rewrite pfx_rev_plus; simpl.
-    assert (n - S i = (n - S j) + S (j - S i)) as H'; try omega.
+    assert (n - S i = (n - S j) + S (j - S i)) as H'; try lia.
     rewrite H' at 1.
     rewrite pfx_rev_plus; simpl.
     rewrite app_ass; simpl.
     f_equal.
-    apply pfx_rev_ext; intros; f_equal; omega.
+    apply pfx_rev_ext; intros; f_equal; lia.
     f_equal.
-    f_equal; omega.
+    f_equal; lia.
   Qed.
-  
+
   Fact good_pfx_eq n f : good (pfx f n) <-> exists i j, i < j < n /\ R (f j) (f i).
-  Proof.    
+  Proof.
     rewrite <- (rev_involutive (pfx f n)).
     rewrite <- pfx_pfx_rev_eq.
     rewrite pfx_rev_minus.
     rewrite <- pfx_pfx_rev_eq.
     rewrite good_pfx_rev_eq.
     split; intros (i & j & H1 & H2).
-    exists (n - S j), (n - S i); split; auto; omega.
+    exists (n - S j), (n - S i); split; auto; lia.
     exists (n - S j), (n - S i); split.
-    omega.
-    replace_with H2; f_equal; omega.
+    lia.
+    replace_with H2; f_equal; lia.
   Qed.
-    
+
   Fact exists_good_app ll mm : (exists a b, In a ll /\ In b mm /\ R b a) -> good (ll++mm).
   Proof.
     intros (a & b & H1 & H2 & H3).
@@ -285,7 +285,7 @@ Section Ge_Good.
     left; constructor 2; auto.
     tauto.
     right; right; exists a, b; tauto.
-  Qed.   
+  Qed.
 
   Fact good_eq_exists ll : good ll <-> exists l a m b r, ll = l++a::m++b::r /\ b << a.
   Proof.
@@ -299,7 +299,7 @@ Section Ge_Good.
     induction 1 as [ l a b H1 H2 | l b H (u & v & H1 & H2)].
     exists a, b; split; auto; constructor 2; apply In_sl; auto.
     exists u, v; split; auto; constructor 3; auto.
-   
+
     intros (a & b & H1 & H2).
     apply good_sublist with (1 := H2).
     constructor 1 with b; auto; left; auto.
@@ -308,10 +308,10 @@ Section Ge_Good.
   Section decision_procedures.
 
     Variable Rdec : forall x y, { x << y } + { ~ x << y }.
-    
+
     Definition Ge_ex_dec a w : { Ge_ex a w } + { ~ Ge_ex a w }.
     Proof.
-      destruct list_dec_rec with (P := fun x => x << a) (ll := w) 
+      destruct list_dec_rec with (P := fun x => x << a) (ll := w)
         as [ (x & H1 & H2) | H ]; simpl; auto.
       left; exists x; auto.
       right; intros (x & H1 & H2); apply H with (1 := H1); auto.
@@ -319,7 +319,7 @@ Section Ge_Good.
 
     Definition Ge_fa_dec a w : { Ge_fa a w } + { ~ Ge_fa a w }.
     Proof.
-      destruct list_dec_rec with (P := fun x => ~ x << a) (ll := w) 
+      destruct list_dec_rec with (P := fun x => ~ x << a) (ll := w)
         as [ (x & H1 & H2) | H ]; simpl; auto.
       intros x; destruct (Rdec x a); tauto.
       left; intros z Hz.
@@ -329,7 +329,7 @@ Section Ge_Good.
 
     Definition Ge_ex_fa_dec a lw : { Ge_ex_fa a lw } + { ~ Ge_ex_fa a lw }.
     Proof.
-      destruct list_dec_rec with (P := fun w => Ge_fa a w) (ll := lw) 
+      destruct list_dec_rec with (P := fun w => Ge_fa a w) (ll := lw)
         as [ (w & H1 & H2) | H ]; auto.
       intros; apply Ge_fa_dec.
       left; exists w; auto.
@@ -341,7 +341,7 @@ Section Ge_Good.
     Proof.
       intros H.
       rewrite Ge_ex_fa_app in H.
-      destruct (Ge_ex_fa_dec a ll); 
+      destruct (Ge_ex_fa_dec a ll);
       destruct (Ge_ex_fa_dec a mm); tauto.
     Qed.
 
@@ -357,7 +357,7 @@ Section Ge_Good.
     Qed.
 
     Definition good_dec ll : { good ll } + { ~ good ll }.
-    Proof. 
+    Proof.
       destruct (good_bad_dec ll); [ left | right ]; auto.
       rewrite not_good_eq_bad; auto.
     Qed.
@@ -387,7 +387,7 @@ Section Ge_Good.
     destruct H as (? & [] & _).
     right; right; auto.
   Qed.
-  
+
   Fact ctxt_cons a ll a1 a2 : ctxt (a::ll) a1 a2 <-> ctxt ll a1 a2 \/ ctxt ll a a1.
   Proof.
     split.
@@ -401,18 +401,18 @@ Section Ge_Good.
     right; right; right; auto.
     left; right; left; exists x; auto.
     left; right; right; auto.
-    
+
     intros [ H | H ]; revert H; intros  [ H | [ H | H ] ].
 
     left; constructor 2; auto.
     destruct H as ( x & H1 & H2 ).
     right; left; exists x; split; auto; right; auto.
-    right; right; auto.    
-    
+    right; right; auto.
+
     left; constructor 2; auto.
     destruct H as ( x & H1 & H2 ).
     left; constructor 1 with x; auto.
-    right; left; exists a; split; auto; left; auto.   
+    right; left; exists a; split; auto; left; auto.
 
   Qed.
 
@@ -424,7 +424,7 @@ Section Ge_Good.
     (rewrite ctxt_nil || rewrite ctxt_cons); auto; unfold lift_rel;
     intros [ | ]; [ left | right | left | right ]; apply IH; auto.
   Qed.
-  
+
 End Ge_Good.
 
 Fact good_inc X (R S : X -> X -> Prop) : R inc2 S -> good R inc1 good S.
@@ -436,8 +436,8 @@ Proof.
 Qed.
 
 Section good_map.
-  
-  Variable (X Y : Type) (f : X -> Y) (R : X -> X -> Prop) (S : Y -> Y -> Prop) 
+
+  Variable (X Y : Type) (f : X -> Y) (R : X -> X -> Prop) (S : Y -> Y -> Prop)
            (HRS2 : forall x y, S (f x) (f y) -> R x y)
            (HRS1 : forall x y, R x y -> S (f x) (f y)).
 
@@ -449,7 +449,7 @@ Section good_map.
     intros H1 H2.
     generalize ll' H2 ll H1.
     clear ll ll' H1 H2.
-    induction 1 as [ ll' a b Hll Hab | ll' a H1 IH ]; intros [ | x ll ] Hll'; try discriminate Hll'; 
+    induction 1 as [ ll' a b Hll Hab | ll' a H1 IH ]; intros [ | x ll ] Hll'; try discriminate Hll';
       simpl in Hll'; injection Hll'; clear Hll'; intros; subst.
     apply in_map_iff in Hll.
     destruct Hll as (y & H1 & H2); subst.
@@ -457,15 +457,15 @@ Section good_map.
     specialize (IH _ eq_refl).
     constructor 2; auto.
   Qed.
-  
+
   Fact good_map ll : good R ll -> good S (map f ll).
   Proof.
     induction 1 as [ ll a b Hll Hab | ll a H1 IH ]; simpl.
     constructor 1 with (f b); auto.
     apply in_map_iff; exists b; auto.
     constructor 2; auto.
-  Qed.    
-   
+  Qed.
+
 End good_map.
 
 Fact good_lift_rel X R ll a : good (R rlift a) ll -> @good X R (ll++a::nil).
@@ -501,7 +501,7 @@ Proof.
   apply good_sg_inv in H2; destruct H2.
   destruct H2 as (x & b & H2 & [ | [] ] & H3); subst b.
   right; exists x; auto.
-Qed. 
+Qed.
 
 Fact Forall_map_proj1_sig X (P : X -> Prop) (ll : list (sig P)) : Forall P (map (@proj1_sig _ _) ll).
 Proof.
@@ -521,10 +521,10 @@ Proof.
   simpl in H2; auto.
   simpl; constructor; auto.
   apply Forall_map_proj1_sig.
-  
+
   simpl; constructor 2; auto.
   simpl; constructor; auto.
-  
+
   intros (H1 & H2).
   induction ll as [ | (a & Ha) ll IH ].
   apply good_nil_inv in H1; destruct H1.
@@ -592,5 +592,5 @@ Section interleave.
 
 End interleave.
 
-  
-  
+
+

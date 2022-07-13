@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Omega List Permutation Relations.
+Require Import Arith Lia List Permutation Relations.
 
 Require Import tacs.
 
@@ -48,8 +48,8 @@ End Forall.
 
 Section Forall_rect.
 
-  Variables (X : Type) (P : X -> Prop) (Q : list X -> Type) 
-            (HP1 : Q nil) 
+  Variables (X : Type) (P : X -> Prop) (Q : list X -> Type)
+            (HP1 : Q nil)
             (HP2 : forall x l, P x -> Forall P l -> Q l -> Q (x::l)).
 
   Fact Forall_rect l : Forall P l -> Q l.
@@ -70,12 +70,12 @@ Section Forall_Permutation.
   Proof.
     induction 1; auto.
     intros G; constructor; inversion_clear G; auto.
-    intros G. 
+    intros G.
     apply Forall_cons_inv in G; destruct G as [ Gy G ].
     apply Forall_cons_inv in G; destruct G as [ Gx G ].
     repeat constructor; auto.
   Qed.
- 
+
   Fact Forall_perm ll mm : ll ~p mm -> (Forall P ll <-> Forall P mm).
   Proof.
     split; apply Forall_perm_rec; auto.
@@ -108,7 +108,7 @@ End map_ext_Forall.
 Section Forall_flat_map.
 
   Variable (A B C D : Type) (f f' : A -> list B) (P : B -> Prop).
-  
+
   Fact Forall_flat_map ll : Forall P (flat_map f ll) <-> Forall (fun x => Forall P (f x)) ll.
   Proof.
     split.
@@ -119,7 +119,7 @@ Section Forall_flat_map.
     rewrite Forall_app in H.
     constructor; try apply H.
     apply IH, H.
-    
+
     induction 1; simpl.
     constructor.
     rewrite Forall_app; split; auto.
@@ -153,7 +153,7 @@ Proof.
   intros []; constructor; auto.
 Qed.
 
-Fact Forall2_app_inv_l X Y R l1 l2 m : 
+Fact Forall2_app_inv_l X Y R l1 l2 m :
     @Forall2 X Y R (l1++l2) m -> { m1 : _ & { m2 | Forall2 R l1 m1 /\ Forall2 R l2 m2 /\ m = m1++m2 } }.
 Proof.
   revert l2 m;
@@ -167,7 +167,7 @@ Proof.
   exists (y::m1), m2; repeat split; auto.
 Qed.
 
-Fact Forall2_app_inv_r X Y R l m1 m2 : 
+Fact Forall2_app_inv_r X Y R l m1 m2 :
     @Forall2 X Y R l (m1++m2) -> { l1 : _ & { l2 | Forall2 R l1 m1 /\ Forall2 R l2 m2 /\ l = l1++l2 } }.
 Proof.
   revert m2 l;
@@ -181,8 +181,8 @@ Proof.
   exists (x::l1), l2; repeat split; auto.
 Qed.
 
-Fact Forall2_cons_inv_l X Y R a ll mm : 
-      @Forall2 X Y R (a::ll) mm 
+Fact Forall2_cons_inv_l X Y R a ll mm :
+      @Forall2 X Y R (a::ll) mm
    -> { b : _ & { mm' | R a b /\ mm = b::mm' /\ Forall2 R ll mm' } }.
 Proof.
   intros H.
@@ -196,8 +196,8 @@ Proof.
   exists y, mm'; auto.
 Qed.
 
-Fact Forall2_cons_inv_r X Y R b ll mm : 
-      @Forall2 X Y R ll (b::mm) 
+Fact Forall2_cons_inv_r X Y R b ll mm :
+      @Forall2 X Y R ll (b::mm)
    -> { a : _ & { ll' | R a b /\ ll = a::ll' /\ Forall2 R ll' mm } }.
 Proof.
   intros H.
@@ -214,7 +214,7 @@ Qed.
 Fact Forall2_rev X Y (R : X -> Y -> Prop) ll mm : Forall2 R ll mm <-> Forall2 R (rev ll) (rev mm).
 Proof.
   assert (forall ll mm, Forall2 R ll mm -> Forall2 R (rev ll) (rev mm)) as H.
-    induction 1; simpl; auto. 
+    induction 1; simpl; auto.
     apply Forall2_app; auto.
   split; auto.
   rewrite <- (rev_involutive ll) at 2.
@@ -236,7 +236,7 @@ Proof.
   split.
   revert mm.
   induction ll; intros [ | y mm ] H; simpl in H; auto; try (inversion H; fail).
-  apply Forall2_cons_inv in H; constructor. 
+  apply Forall2_cons_inv in H; constructor.
   tauto.
   apply IHll; tauto.
   induction 1; constructor; auto.
@@ -247,7 +247,7 @@ Proof.
   split.
   revert mm.
   induction ll; intros [ | y mm ] H; simpl in H; auto; try (inversion H; fail).
-  apply Forall2_cons_inv in H; constructor. 
+  apply Forall2_cons_inv in H; constructor.
   tauto.
   apply IHll; tauto.
   induction 1; constructor; auto.
@@ -278,8 +278,8 @@ Qed.
 Section Forall2_comp.
 
   Variable (X Y Z : Type) (R : X -> Y -> Prop) (S : Y -> Z -> Prop).
-  
-  Fact Forall2_compose k l m : Forall2 R k l -> Forall2 S l m 
+
+  Fact Forall2_compose k l m : Forall2 R k l -> Forall2 S l m
                             -> Forall2 (fun x z => exists y, R x y /\ S y z) k m.
   Proof.
     intros H; revert H m.
@@ -326,10 +326,10 @@ Proof.
   exists a; simpl; auto.
   destruct (IH2 _ Hx) as (y & H3 & H4).
   exists y; simpl; auto.
-Qed.  
+Qed.
 
-Fact Forall2_impl_Forall2_incl X Y (R S : X -> Y -> Prop) ll mm : 
-      Forall2 (fun x y => R x y -> S x y) ll mm 
+Fact Forall2_impl_Forall2_incl X Y (R S : X -> Y -> Prop) ll mm :
+      Forall2 (fun x y => R x y -> S x y) ll mm
    -> Forall2 R ll mm -> Forall2 S ll mm.
 Proof.
   induction 1 as [ | x y ll mm H1 H2 H3 ]; simpl.
@@ -350,9 +350,9 @@ Proof.
   constructor; auto.
 Qed.
 
-Fact Forall2_incl_map X Y (f : list X -> list Y) l m : 
+Fact Forall2_incl_map X Y (f : list X -> list Y) l m :
        (forall u v, incl u v -> incl (f u) (f v))
-    -> Forall2 (@incl _) l m 
+    -> Forall2 (@incl _) l m
     -> Forall2 (@incl _) (map f l) (map f m).
 Proof.
   intro; induction 1; simpl; constructor; auto.
@@ -367,17 +367,17 @@ Fact Forall2_pfx A B (R : A -> B -> Prop) f g n : Forall2 R (pfx f n) (pfx g n) 
 Proof.
   revert f g;
   induction n as [ | n IHn ]; intros f g; simpl.
-  split; intros; auto; omega.
+  split; intros; auto; lia.
   split.
   intros H.
   apply Forall2_cons_inv in H.
   destruct H as [ H1 H2 ].
   intros [ | i ]; auto.
-  intros; apply IHn with (f := fun n => f (S n)) (g := fun n => g (S n)); auto; omega.
+  intros; apply IHn with (f := fun n => f (S n)) (g := fun n => g (S n)); auto; lia.
   intros H; constructor.
-  apply H; omega.
+  apply H; lia.
   apply IHn with (f := fun n => f (S n)) (g := fun n => g (S n)).
-  intros; apply H; omega.
+  intros; apply H; lia.
 Qed.
 
 Section Forall2_tools.
@@ -412,15 +412,15 @@ Section Forall2_tools.
 
   Fact Forall2_trans : transitive _ R -> transitive _ (Forall2 R).
   Proof.
-    intros HR ll mm kk H1; revert kk. 
+    intros HR ll mm kk H1; revert kk.
     induction H1 as [ | x y ll mm H1 H2 IH ]; intros kk H3; auto.
     inversion_clear H3; constructor; auto.
     apply HR with (1 := H1); auto.
   Qed.
-  
+
   Fact Forall2_Forall_Forall ll mm :
          (forall x y, T x y -> P x -> Q y)
-      -> Forall2 T ll mm 
+      -> Forall2 T ll mm
       -> Forall P ll
       -> Forall Q mm.
     Proof.
@@ -431,7 +431,7 @@ Section Forall2_tools.
       constructor; auto.
       revert Hx; apply H; auto.
     Qed.
-  
+
   Fact Forall2_perm_comm ll mm kk : Forall2 R ll mm -> Permutation mm kk -> exists ll', Permutation ll ll' /\ Forall2 R ll' kk.
   Proof.
     intros H1; revert kk.
@@ -452,9 +452,9 @@ Section Forall2_tools.
 
   Variable (f : X -> list Y).
 
-  Fact Forall2_In_map_impl ll mm ts : 
-              Forall2 (fun x y => forall t, In x (f t) -> In y (f t)) ll mm       
-           -> Forall2 (@In _) ll (map f ts) 
+  Fact Forall2_In_map_impl ll mm ts :
+              Forall2 (fun x y => forall t, In x (f t) -> In y (f t)) ll mm
+           -> Forall2 (@In _) ll (map f ts)
            -> Forall2 (@In _) mm (map f ts).
   Proof.
     intros H; revert ts.
@@ -476,7 +476,7 @@ Proof.
   revert H; apply Forall2_length.
   intros (H1 & H2); revert ly H2.
   induction H1; intros [ | ] H2; try discriminate H2; constructor; auto.
-Qed. 
+Qed.
 
 Fact Forall2_right_Forall X Y (P : Y -> Prop) lx ly : Forall2 (fun (_ : X) y => P y) lx ly <-> Forall P ly /\ length lx = length ly.
 Proof.
@@ -486,10 +486,10 @@ Proof.
   revert H; apply Forall2_length.
   intros (H1 & H2); revert lx H2.
   induction H1; intros [ | ] H2; try discriminate H2; constructor; auto.
-Qed. 
+Qed.
 
-Fact Forall2_cond_left X Y (P : X -> Prop) (R : X -> Y -> Prop) ll mm : 
-  Forall P ll -> Forall2 (fun x y => P x -> R x y) ll mm -> Forall2 R ll mm. 
+Fact Forall2_cond_left X Y (P : X -> Prop) (R : X -> Y -> Prop) ll mm :
+  Forall P ll -> Forall2 (fun x y => P x -> R x y) ll mm -> Forall2 R ll mm.
 Proof.
   intros H1 H2.
   apply (Forall2_impl_Forall2_incl _ H2).
@@ -497,8 +497,8 @@ Proof.
   apply Forall2_length with (1 := H2).
 Qed.
 
-Fact Forall2_cond_right X Y (P : Y -> Prop) (R : X -> Y -> Prop) ll mm : 
-  Forall P mm -> Forall2 (fun x y => P y -> R x y) ll mm -> Forall2 R ll mm. 
+Fact Forall2_cond_right X Y (P : Y -> Prop) (R : X -> Y -> Prop) ll mm :
+  Forall P mm -> Forall2 (fun x y => P y -> R x y) ll mm -> Forall2 R ll mm.
 Proof.
   intros H1 H2.
   apply (Forall2_impl_Forall2_incl _ H2).
@@ -518,7 +518,7 @@ Proof.
   induction 1; simpl; f_equal; auto.
 Qed.
 
-Fact Forall2_list_In_map X Y Z (R : Y -> Z -> Prop) ll f g : (forall (x : X) (H : In x ll), R (f x H) (g x H)) <-> Forall2 R (list_In_map ll f) (list_In_map ll g). 
+Fact Forall2_list_In_map X Y Z (R : Y -> Z -> Prop) ll f g : (forall (x : X) (H : In x ll), R (f x H) (g x H)) <-> Forall2 R (list_In_map ll f) (list_In_map ll g).
 Proof.
   split.
   induction ll; simpl; auto.
@@ -528,12 +528,12 @@ Proof.
   intros H.
   apply Forall2_cons_inv in H.
   destruct H as ( H1 & H2 ).
-  intros x [ Hx | Hx ]. 
+  intros x [ Hx | Hx ].
   subst x; auto.
-  apply IHll with (1 := H2). 
+  apply IHll with (1 := H2).
 Qed.
 
-Fact Forall2_list_In_t_map X Y Z (R : Y -> Z -> Prop) ll f g : (forall (x : X) (H : In_t x ll), R (f x H) (g x H)) <-> Forall2 R (list_In_t_map ll f) (list_In_t_map ll g). 
+Fact Forall2_list_In_t_map X Y Z (R : Y -> Z -> Prop) ll f g : (forall (x : X) (H : In_t x ll), R (f x H) (g x H)) <-> Forall2 R (list_In_t_map ll f) (list_In_t_map ll g).
 Proof.
   split.
   induction ll; simpl; auto.
@@ -543,15 +543,15 @@ Proof.
   intros H.
   apply Forall2_cons_inv in H.
   destruct H as ( H1 & H2 ).
-  intros x [ Hx | Hx ]. 
+  intros x [ Hx | Hx ].
   subst x; auto.
-  apply IHll with (1 := H2). 
+  apply IHll with (1 := H2).
 Qed.
 
-Fact Forall2_to_list_In_t_map X Y (R : X -> Y -> Prop) l m : 
-          Forall2 R l m 
-       -> { f : forall x, In_t x l -> Y 
-              | m = list_In_t_map l f 
+Fact Forall2_to_list_In_t_map X Y (R : X -> Y -> Prop) l m :
+          Forall2 R l m
+       -> { f : forall x, In_t x l -> Y
+              | m = list_In_t_map l f
              /\ forall x Hx, R x (f x Hx) }.
 Proof.
   revert m.
@@ -566,13 +566,13 @@ Proof.
   apply Hf2.
 Qed.
 
-Fact Forall2_combine X Y (R : X -> Y -> Prop) l m : 
+Fact Forall2_combine X Y (R : X -> Y -> Prop) l m :
           Forall2 R l m -> Forall (fun c => R (fst c) (snd c)) (combine l m).
 Proof.
   induction 1; simpl; constructor; auto.
 Qed.
 
-Fact Forall2_combine_In X Y (R : X -> Y -> Prop) l m : 
+Fact Forall2_combine_In X Y (R : X -> Y -> Prop) l m :
           Forall2 R l m -> forall x, In x l -> exists c, In c (combine l m) /\ fst c = x.
 Proof.
   induction 1 as [ | x y l m H1 H2 IH2 ]; simpl; intros z.
@@ -586,7 +586,7 @@ Qed.
 Section analysis_fun.
 
   Variable (X Y : Type) (P : X -> Prop) (f : X -> Y).
-  
+
   Fact Forall2_analysis lx ly : Forall2 (fun x y => P x /\ f x = y) lx ly
                               <-> Forall P lx /\ map f lx = ly.
   Proof.
@@ -596,12 +596,12 @@ Section analysis_fun.
     split; try tauto.
     intros (? & ?); subst; rewrite map_length; auto.
   Qed.
-    
-End analysis_fun.        
+
+End analysis_fun.
 
 Section list_sup.
 
-  Variables (X : Type) 
+  Variables (X : Type)
             (P : nat -> X -> Prop) (P_mono : forall n x, P n x -> P (S n) x)
             (R : nat -> relation X) (R_mono : forall n, R n inc2 R (S n)).
 
@@ -642,7 +642,7 @@ Section list_sup.
     revert IH2; apply list_Forall2_mono, R_monotonic, le_plus_r.
   Qed.
 
-End list_sup.            
+End list_sup.
 
 Fact Forall2_w_continuous X K ll mm : @seq_increasing X K -> Forall2 (fun x y => exists n, K n x y) ll mm -> exists n, Forall2 (K n) ll mm.
 Proof.
@@ -650,8 +650,8 @@ Proof.
   induction 1 as [ | x y ll mm (n & Hn) H2 (m & Hm) ].
   exists 0; constructor.
   exists (n+m); constructor.
-  revert Hn; apply seq_inc_all; auto; omega.
-  revert Hm; apply Forall2_impl, seq_inc_all; auto; omega.
+  revert Hn; apply seq_inc_all; auto; lia.
+  revert Hm; apply Forall2_impl, seq_inc_all; auto; lia.
 Qed.
 
 Section Exists2.
@@ -696,7 +696,7 @@ Fact Exists2_exists_left X Y R ll mm : @Exists2 X Y (fun x _ => R x) ll mm <-> l
 Proof.
   split.
   induction 1 as [ | x y l m H1 (H2 & z & H3 & H4) ].
-  split. 
+  split.
   simpl; f_equal; auto.
   exists x; simpl; auto.
   split.
@@ -718,7 +718,7 @@ Fact Exists2_exists_right X Y R ll mm : @Exists2 X Y (fun _ y => R y) ll mm <-> 
 Proof.
   split.
   induction 1 as [ | x y l m H1 (H2 & z & H3 & H4) ].
-  split. 
+  split.
   simpl; f_equal; auto.
   exists y; simpl; auto.
   split.
@@ -739,7 +739,7 @@ Qed.
 Section Forall2_Exists2.
 
   Variable (X Y : Type) (R S : X -> Y -> Prop).
-  
+
   Fact Forall2_decide_ind ll mm : Forall2 (R cup2 S) ll mm -> Forall2 R ll mm \/ Exists2 S ll mm.
   Proof.
     induction 1 as [ | x y ll mm [ H1 | H1 ] H2 [ H3 | H3 ] ].
@@ -756,9 +756,9 @@ End Forall2_Exists2.
 Section Forall2_dec.
 
   Variable (X Y : Type).
-  
+
   Implicit Types (R S : X -> Y -> Prop).
-  
+
   Fact Forall2_choose_t R S ll mm : (forall x y, In_t x ll -> In_t y mm -> { R x y } + { S x y })
                            -> length ll = length mm -> { Forall2 R ll mm } + { Exists2 S ll mm }.
   Proof.
@@ -790,7 +790,7 @@ Section Forall2_dec.
     destruct C; tauto.
     right; contradict H2; revert H2; apply Forall2_length.
   Qed.
-  
+
   Fact Forall2_dec R ll mm :  (forall x y, In x ll -> In y mm -> { R x y } + { ~ R x y })
                            -> { Forall2 R ll mm } + { ~ Forall2 R ll mm }.
   Proof.
@@ -806,50 +806,50 @@ Section Forall2_dec.
     assert (forall x y, In_t x ll -> In_t y mm -> { ~ R x y } + { R x y }) as H3.
       intros x y Hx Hy; destruct (H1 _ _ Hx Hy); tauto.
     destruct (Forall2_choose_t _ _ _ _ H3 H2) as [ C | C ].
-    
+
     right.
     clear H1 H2 H3.
     induction C as [ | a b ll mm H1 H2 H3 ].
     apply Exists2_nil_inv.
     contradict H3.
     apply Exists2_cons_inv in H3; tauto.
-    
+
     left; auto.
-    
+
     right.
     contradict H2; revert H2.
     apply Exists2_length.
   Qed.
-  
+
   Fact Exists2_dec R ll mm :  (forall x y, In x ll -> In y mm -> { R x y } + { ~ R x y })
                            -> { Exists2 R ll mm } + { ~ Exists2 R ll mm }.
   Proof.
     intros H; apply Exists2_dec_t.
     intros; apply H; apply In_t_In; auto.
   Qed.
-  
+
 End Forall2_dec.
 
-Section Forall3. 
+Section Forall3.
 
   Variable (X Y Z : Type).
-  
+
   Implicit Type (R S : X -> Y -> Z -> Prop) (lx : list X).
-  
+
   Inductive Forall3 R : list X -> list Y -> list Z -> Prop :=
     | in_Forall3_nil  : Forall3 R nil nil nil
-    | in_Forall3_cons : forall x lx y ly z lz, R x y z 
-                                            -> Forall3 R lx ly lz 
+    | in_Forall3_cons : forall x lx y ly z lz, R x y z
+                                            -> Forall3 R lx ly lz
                                             -> Forall3 R (x::lx) (y::ly) (z::lz).
 
   Inductive Exists3 R : list X -> list Y -> list Z -> Prop :=
-    | Exists3_start : forall x lx y ly z lz, R x y z 
+    | Exists3_start : forall x lx y ly z lz, R x y z
                                           -> length lx = length ly
                                           -> length lx = length lz
                                           -> Exists3 R (x::lx) (y::ly) (z::lz)
-    | Exists3_cont : forall x lx y ly z lz, Exists3 R lx ly lz 
+    | Exists3_cont : forall x lx y ly z lz, Exists3 R lx ly lz
                                          -> Exists3 R (x::lx) (y::ly) (z::lz).
-    
+
   Fact Forall3_inc R S li : Forall (fun i => R i inc2 S i) li
                          -> Forall3 R li inc2 Forall3 S li.
   Proof.
@@ -859,13 +859,13 @@ Section Forall3.
     inversion_clear 1.
     constructor; auto.
   Qed.
-  
+
   Fact Forall3_length R lx ly lz : Forall3 R lx ly lz -> length lx = length ly /\ length lx = length lz.
   Proof.
     induction 1 as [ | x lx y ly z lz H1 H2 (H3 & H4) ]; simpl; auto.
   Qed.
-  
-  Fact Forall3_cup R S lx ly lz : Forall3 (fun i => R i cup2 S i) lx ly lz 
+
+  Fact Forall3_cup R S lx ly lz : Forall3 (fun i => R i cup2 S i) lx ly lz
                                -> Forall3 R lx ly lz \/ Exists3 S lx ly lz.
   Proof.
     induction 1 as [ | x lx y ly z lz H1 H2 H3 ].
@@ -878,17 +878,17 @@ Section Forall3.
     right; constructor 2; auto.
   Qed.
 
-  Fact Forall3_Forall2_first K lx ly lz : Forall3 (fun _ => K) lx ly lz 
+  Fact Forall3_Forall2_first K lx ly lz : Forall3 (fun _ => K) lx ly lz
                                        -> Forall2 K ly lz.
   Proof.
     induction 1; simpl; constructor; auto.
   Qed.
-  
-  Fact Exists3_Exists2_last R lx ly lz : 
-                Exists3 R lx ly lz 
+
+  Fact Exists3_Exists2_last R lx ly lz :
+                Exists3 R lx ly lz
              -> exists z, In z lz /\ Exists2 (fun x y => R x y z) lx ly.
   Proof.
-    induction 1 as [ x lx y ly z lz H1 H2 H3 
+    induction 1 as [ x lx y ly z lz H1 H2 H3
                    | x lx y ly z lz H1 H2 ].
     exists z; simpl; split; try tauto.
     constructor 1; auto.

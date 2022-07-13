@@ -7,7 +7,7 @@
 (*         CeCILL v2 FREE SOFTWARE LICENSE AGREEMENT          *)
 (**************************************************************)
 
-Require Import Arith Omega List Permutation.
+Require Import Arith Lia List Permutation.
 
 Require Import tacs rel_utils list_utils finite.
 
@@ -16,7 +16,7 @@ Set Implicit Arguments.
 Section Relevant.
 
   Variables (X : Type) (eqX_dec : forall x y : X, { x = y } + { x <> y }).
-  
+
   Notation occ := (@occ _ eqX_dec).
 (*  Infix "c>>" := (@list_contract _ eqX_dec) (at level 70, no associativity). *)
   Infix "≻c" := (@list_contract _ eqX_dec) (at level 70, no associativity).
@@ -25,24 +25,24 @@ Section Relevant.
   Proof.
     intros H.
     destruct (le_lt_dec p a).
-    exists p, 0; omega.
-    exists a, (p-a); omega.
+    exists p, 0; lia.
+    exists a, (p-a); lia.
   Qed.
-  
-  Local Fact part_eq_SS p a b : 
+
+  Local Fact part_eq_SS p a b :
      2 <= p <= a + b -> { a' : _ & { b' | a' <= a /\ b' <= b /\ p = a' + b' /\ (a' = 0 -> a = 0) /\ (b' = 0 -> b = 0) } }.
   Proof.
     intros H.
     destruct a.
-    exists 0, p; omega.
+    exists 0, p; lia.
     destruct b.
-    exists p, 0; omega.
+    exists p, 0; lia.
     destruct (@part_eq (p-2) a b) as (a' & b' & ? & ? & ?).
-    omega.
-    exists (S a'), (S b'); omega.
+    lia.
+    exists (S a'), (S b'); lia.
   Qed.
 
-  Definition LR2_condition_1 a e h := 
+  Definition LR2_condition_1 a e h :=
      (h = 0  -> a = 0 /\ e = 0)
   /\ (h = 1  -> a = 0 /\ e = 1
              \/ a = 1 /\ e = 0
@@ -53,7 +53,7 @@ Section Relevant.
   Definition LR2c_2 a b c := (c <= 1 /\ c <= a+b /\ a <= 1 /\ b <= 1) \/ (2 <= c /\ c = a + b).
 
   Fact LR2_condition_1_eq a b c : LR2_condition_1 a b c <-> LR2c_1 a b c.
-  Proof. unfold LR2_condition_1, LR2c_1; omega. Qed.
+  Proof. unfold LR2_condition_1, LR2c_1; lia. Qed.
 
   Definition LR2_condition_2 a e h :=
      (h = 0  -> a = 0 /\ e = 0)
@@ -66,20 +66,20 @@ Section Relevant.
              \/ a = 1 /\ e = 1)
   /\ (3 <= h -> h = 1 + a + e).
 
-  Fact LR2_condition_2_eq a b c : LR2_condition_2 a b c 
+  Fact LR2_condition_2_eq a b c : LR2_condition_2 a b c
                               <-> (a <= c /\ b <= c <= 1)
                                \/ (a <= 1 /\ b <= 1 /\ 1 <= a+b <= c /\ c = 2)
                                \/ (3 <= c /\ c = 1+a+b).
-  Proof. unfold LR2_condition_2; omega. Qed. 
+  Proof. unfold LR2_condition_2; lia. Qed.
 
   Fact LR2_condition_2_eq' a b c : LR2_condition_2 a b (1+c) <-> LR2c_2 a b c.
-  Proof. unfold LR2_condition_2, LR2c_2; omega. Qed. 
+  Proof. unfold LR2_condition_2, LR2c_2; lia. Qed.
 
-  (* Proofs for the lazy mathematician ... thank you omega *)
+  (* Proofs for the lazy mathematician ... thank you lia *)
 
   Fact LR2_c1_contract a e h h' :
-       LR2_condition_1 a e h 
-    -> 1 <= h' <= h 
+       LR2_condition_1 a e h
+    -> 1 <= h' <= h
     -> exists a' e', LR2_condition_1 a' e' h'
                   /\ nat_contract a a'
                   /\ nat_contract e e'.
@@ -87,22 +87,22 @@ Section Relevant.
     unfold LR2_condition_1, nat_contract.
     intros H1 H2.
     destruct (le_lt_dec h' 1).
-    
+
     apply proj2 in H1.
-    destruct a; destruct e; try (exfalso; omega); clear H1.
-    exists 0, 1; omega.
-    exists 1, 0; omega.
-    exists 1, 1; omega.
-    
+    destruct a; destruct e; try (exfalso; lia); clear H1.
+    exists 0, 1; lia.
+    exists 1, 0; lia.
+    exists 1, 1; lia.
+
     do 2 apply proj2 in H1.
     destruct (@part_eq_SS h' a e) as (a' & e' & ? & ? & ? & ? & ?).
-    omega.
-    exists a', e'; omega.
+    lia.
+    exists a', e'; lia.
   Qed.
 
   Fact LR2_c2_contract a e h h' :
-       LR2_condition_2 a e h 
-    -> 1 <= h' <= h 
+       LR2_condition_2 a e h
+    -> 1 <= h' <= h
     -> exists a' e', LR2_condition_2 a' e' h'
                   /\ nat_contract a a'
                   /\ nat_contract e e'.
@@ -110,20 +110,20 @@ Section Relevant.
     unfold LR2_condition_2, nat_contract.
     intros [ _ H1 ] H2.
     destruct (le_lt_dec h' 2).
-    
-    assert (h' = 1 \/ h' = 2) as H3 by omega.
+
+    assert (h' = 1 \/ h' = 2) as H3 by lia.
     destruct a; destruct e.
     destruct H3.
-    clear H1; exists 0, 0; omega.
-    exfalso; omega.
-    clear H1; exists 0, 1; omega.
-    clear H1; exists 1, 0; omega.
-    clear H1; exists 1, 1; omega.
-    
+    clear H1; exists 0, 0; lia.
+    exfalso; lia.
+    clear H1; exists 0, 1; lia.
+    clear H1; exists 1, 0; lia.
+    clear H1; exists 1, 1; lia.
+
     do 2 apply proj2 in H1.
     destruct (@part_eq_SS (h'-1) a e) as (a' & e' & ? & ? & ? & ? & ?).
-    omega.
-    exists a', e'; omega.
+    lia.
+    exists a', e'; lia.
   Qed.
 
   Definition LR2_condition x (ga de th : list X) :=
@@ -140,15 +140,15 @@ Section Relevant.
     2,4: revert H2; rewrite occ_eq; apply LR2_condition_2_eq'.
     1,2: intros d Hd; generalize (H1 _ Hd); rewrite occ_neq; auto; apply LR2_condition_1_eq.
   Qed.
-   
+
   Fact LR2_condition_prop1 x ga de th : LR2_condition x ga de th -> incl ga (x::th).
   Proof.
     intros H1 y.
     do 2 rewrite in_occ_neq0 with (eqX_dec := eqX_dec).
     destruct (eqX_dec y x) as [ | D ].
-    subst y; generalize (proj2 H1); rewrite occ_eq; omega.
-    generalize (proj1 H1 _ D); rewrite occ_neq; auto. 
-    intros (H & _); omega.
+    subst y; generalize (proj2 H1); rewrite occ_eq; lia.
+    generalize (proj1 H1 _ D); rewrite occ_neq; auto.
+    intros (H & _); lia.
   Qed.
 
   Fact LR2c_prop1 x ga de th : LR2c x ga de th -> incl ga (x::th).
@@ -157,15 +157,15 @@ Section Relevant.
     apply LR2_condition_LR2c, LR2_condition_prop1 in H.
     intros y Hy; apply H in Hy; revert Hy; simpl; tauto.
   Qed.
-  
+
   Fact LR2_condition_prop2 x ga de th : LR2_condition x ga de th -> incl de (x::th).
   Proof.
     intros H1 y.
     do 2 rewrite in_occ_neq0 with (eqX_dec := eqX_dec).
     destruct (eqX_dec y x) as [ | D ].
-    subst y; generalize (proj2 H1); rewrite occ_eq; omega.
-    generalize (proj1 H1 _ D); rewrite occ_neq; auto. 
-    intros (H & _); omega.
+    subst y; generalize (proj2 H1); rewrite occ_eq; lia.
+    generalize (proj1 H1 _ D); rewrite occ_neq; auto.
+    intros (H & _); lia.
   Qed.
 
   Fact LR2c_prop2 x ga de th : LR2c x ga de th -> incl de (x::th).
@@ -174,98 +174,98 @@ Section Relevant.
     apply LR2_condition_LR2c, LR2_condition_prop2 in H.
     intros y Hy; apply H in Hy; revert Hy; simpl; tauto.
   Qed.
-  
+
   (* Rule LR2_imp_l is a composition of LR1_imp_l with contracttion *)
 
-  Fact LR2_condition_contract x ga de th : 
+  Fact LR2_condition_contract x ga de th :
        LR2_condition x ga de (x::th) -> x::ga++de ≻c x::th.
   Proof.
     intros H1 y.
     destruct (eqX_dec y x) as [ | D ].
     subst y; generalize (proj2 H1).
-    repeat rewrite occ_eq. 
+    repeat rewrite occ_eq.
     rewrite occ_app.
     generalize (occ x ga) (occ x de) (occ x th).
-    intros a b c; unfold LR2_condition_2, nat_contract; omega.
+    intros a b c; unfold LR2_condition_2, nat_contract; lia.
     generalize (proj1 H1 _ D).
     repeat rewrite occ_neq; auto.
     rewrite occ_app.
     generalize (occ y ga) (occ y de) (occ y th).
-    intros a b c; unfold LR2_condition_1, nat_contract; omega.
+    intros a b c; unfold LR2_condition_1, nat_contract; lia.
   Qed.
 
-  Fact LR2c_contract x ga de th : 
+  Fact LR2c_contract x ga de th :
        LR2c x ga de th -> x::ga++de ≻c x::th.
   Proof.
     intro; apply LR2_condition_contract,  LR2_condition_LR2c; auto.
   Qed.
 
-  Fact LR2_condition_2contract_1 x ga de th : 
+  Fact LR2_condition_2contract_1 x ga de th :
        LR2_condition x ga de th -> forall y, occ y ga <= 2 * occ y th.
   Proof.
     intros [ H1 H2 ] y.
     destruct (eqX_dec y x) as [ | Hy ].
-    subst y; clear H1; red in H2; omega.
-    clear H2; specialize (H1 _ Hy); red in H1; omega.
+    subst y; clear H1; red in H2; lia.
+    clear H2; specialize (H1 _ Hy); red in H1; lia.
   Qed.
 
-  Fact LR2_condition_2contract_2 x ga de th : 
+  Fact LR2_condition_2contract_2 x ga de th :
        LR2_condition x ga de th -> forall y, occ y de <= 2 * occ y th.
   Proof.
     intros [ H1 H2 ] y.
     destruct (eqX_dec y x) as [ | Hy ].
-    subst y; clear H1; red in H2; omega.
-    clear H2; specialize (H1 _ Hy); red in H1; omega.
+    subst y; clear H1; red in H2; lia.
+    clear H2; specialize (H1 _ Hy); red in H1; lia.
   Qed.
- 
-  Fact LR2_condition_perm_1 x ga ga' de th : 
-       ga ~p ga' 
-    -> LR2_condition x ga de th 
+
+  Fact LR2_condition_perm_1 x ga ga' de th :
+       ga ~p ga'
+    -> LR2_condition x ga de th
     -> LR2_condition x ga' de th.
   Proof.
     intros H1 [ H2 H3 ]; split; [ intros d Hd; specialize (H2 _ Hd) | ];
     rewrite <- occ_perm with (1 := H1); auto.
   Qed.
-  
-  Fact LR2_condition_perm_2 x ga de de' th : 
-       de ~p de' 
-    -> LR2_condition x ga de th 
+
+  Fact LR2_condition_perm_2 x ga de de' th :
+       de ~p de'
+    -> LR2_condition x ga de th
     -> LR2_condition x ga de' th.
   Proof.
     intros H1 [ H2 H3 ]; split; [ intros d Hd; specialize (H2 _ Hd) | ];
     rewrite <- occ_perm with (1 := H1); auto.
   Qed.
-  
-  Fact LR2_condition_perm_3 x ga de th th' : 
-       th ~p th' 
-    -> LR2_condition x ga de th 
+
+  Fact LR2_condition_perm_3 x ga de th th' :
+       th ~p th'
+    -> LR2_condition x ga de th
     -> LR2_condition x ga de th'.
   Proof.
     intros H1 [ H2 H3 ]; split; [ intros d Hd; specialize (H2 _ Hd) | ];
     rewrite <- occ_perm with (1 := H1); auto.
   Qed.
 
-  Fact LR2c_perm_1 x ga ga' de th : 
-       ga ~p ga' 
-    -> LR2c x ga de th 
+  Fact LR2c_perm_1 x ga ga' de th :
+       ga ~p ga'
+    -> LR2c x ga de th
     -> LR2c x ga' de th.
   Proof.
     intro; do 2 rewrite <- LR2_condition_LR2c.
     apply LR2_condition_perm_1; auto.
   Qed.
 
-  Fact LR2c_perm_2 x ga de de' th : 
-       de ~p de' 
-    -> LR2c x ga de th 
+  Fact LR2c_perm_2 x ga de de' th :
+       de ~p de'
+    -> LR2c x ga de th
     -> LR2c x ga de' th.
   Proof.
     intro; do 2 rewrite <- LR2_condition_LR2c.
     apply LR2_condition_perm_2; auto.
   Qed.
 
-  Fact LR2c_perm_3 x ga de th th' : 
-       th ~p th' 
-    -> LR2c x ga de th 
+  Fact LR2c_perm_3 x ga de th th' :
+       th ~p th'
+    -> LR2c x ga de th
     -> LR2c x ga de th'.
   Proof.
     intro; do 2 rewrite <- LR2_condition_LR2c.
@@ -276,7 +276,7 @@ Section Relevant.
 
   Theorem LR2_condition_cntr x y ga de th :
                               LR2_condition x ga de   (y::y::th)
-           -> exists ga' de', LR2_condition x ga' de' (y::th) 
+           -> exists ga' de', LR2_condition x ga' de' (y::th)
                            /\ ga ≻c ga' /\ de ≻c de'.
   Proof.
     intros H.
@@ -287,7 +287,7 @@ Section Relevant.
     apply LR2_condition_perm_2 with (1 := Hle1) in H.
     apply LR2_condition_perm_3 with (1 := perm_skip y (perm_skip y Hlh1)) in H.
     revert H Hla1 Hle1 Hlh1.
-    generalize (occ y ga) (occ y de) (occ y th). 
+    generalize (occ y ga) (occ y de) (occ y th).
     intros na ne nh H Hla1 Hle1 Hlh1.
     destruct (eqX_dec y x) as [ | D ]; [ subst | ].
     + destruct H as (H1 & H2).
@@ -297,9 +297,9 @@ Section Relevant.
       rewrite Hlh, Hle, Hla in H2.
       repeat rewrite Nat.add_0_r in H2.
       destruct LR2_c2_contract with (h' := S nh) (1 := H2)
-        as (na' & ne' & H3 & H4 & H5); try omega.
+        as (na' & ne' & H3 & H4 & H5); try lia.
       exists (list_repeat x na'++la), (list_repeat x ne'++le); split.
-      * apply LR2_condition_perm_3 with (1 := Permutation_sym (perm_skip _ Hlh1)). 
+      * apply LR2_condition_perm_3 with (1 := Permutation_sym (perm_skip _ Hlh1)).
         split.
         - intros d Hd; specialize (H1 _ Hd); revert H1.
           repeat rewrite occ_neq; auto.
@@ -330,9 +330,9 @@ Section Relevant.
       rewrite Hlh, Hle, Hla in H3.
       repeat rewrite Nat.add_0_r in H3.
       destruct LR2_c1_contract with (h' := S nh) (1 := H3)
-        as (na' & ne' & H4 & H5 & H6); try omega.
+        as (na' & ne' & H4 & H5 & H6); try lia.
       exists (list_repeat y na'++la), (list_repeat y ne'++le); split.
-      * apply LR2_condition_perm_3 with (1 := Permutation_sym (perm_skip _ Hlh1)). 
+      * apply LR2_condition_perm_3 with (1 := Permutation_sym (perm_skip _ Hlh1)).
         split.
         - intros d Hd; destruct (eqX_dec d y) as [ ? | D1 ]; subst.
           ** repeat rewrite occ_eq.
@@ -381,12 +381,12 @@ Section Relevant.
 
   (* This is the instance of contraction with is needed for the proof of Curry's Lemma *)
 
-  (* Γ Δ Θ Σ α *)  
+  (* Γ Δ Θ Σ α *)
 
   Lemma LR2c_contract_cons Γ Δ Θ α Σ :
         LR2c α Γ Δ Θ
      -> α::Θ ≻c Σ
-     -> exists Γ' Δ' Θ', LR2c α Γ' Δ' Θ' 
+     -> exists Γ' Δ' Θ', LR2c α Γ' Δ' Θ'
                          /\ Γ ≻c Γ'
                          /\ Δ ≻c Δ'
                          /\ Σ ~p α::Θ'.
@@ -399,9 +399,9 @@ Section Relevant.
     rewrite <- LR2_condition_LR2c.
     revert H3; apply LR2_condition_perm_3; auto.
   Qed.
-  
+
   Local Fact forall_split K (P Q : K -> Prop) :
-               (forall x, P x \/ ~ P x) 
+               (forall x, P x \/ ~ P x)
             -> (forall x, Q x) <-> (forall x, P x -> Q x)
                                 /\ (forall x, ~ P x -> Q x).
   Proof.
@@ -412,9 +412,9 @@ Section Relevant.
     apply H1; auto.
     apply H2; auto.
   Qed.
-  
+
   Local Fact forall_split_dec K (P Q : K -> Prop) :
-               (forall x, P x \/ ~ P x) 
+               (forall x, P x \/ ~ P x)
             -> { forall x, P x -> Q x } + { ~ forall x, P x -> Q x }
             -> (forall x, ~ P x -> Q x)
             -> { forall x, Q x } + { ~ forall x, Q x }.
@@ -423,7 +423,7 @@ Section Relevant.
     left; apply forall_split with (1 := H1); auto.
     right; contradict H2; intros ? ?; auto.
   Qed.
-  
+
   Fact forall_finite_t_decide K (P Q : K -> Prop) :
       finite_t P -> (forall x, P x -> { Q x } + { ~ Q x }) -> { forall x, P x -> Q x } + { ~ forall x, P x -> Q x }.
   Proof.
@@ -444,33 +444,33 @@ Section Relevant.
     Proof.
       intros [ ? | ? ] [ ? | ? ]; tauto.
     Qed.
-  
+
     Local Fact imp_dec (A B : Prop) : { A } + { ~ A } -> { B } + { ~ B } -> { A -> B } + { ~ (A -> B) }.
     Proof.
       intros [ ? | ? ] [ ? | ? ]; tauto.
     Qed.
-  
+
     Local Fact iff_dec (A B : Prop) : { A } + { ~ A } -> { B } + { ~ B } -> { A <-> B } + { ~ (A <-> B) }.
     Proof.
       intros [ ? | ? ] [ ? | ? ]; tauto.
     Qed.
-  
+
     Local Fact neqX_dec (x y : X) : { x <> y } + { ~ x <> y }.
     Proof.
       destruct (eqX_dec x y); [ right | left ]; tauto.
     Qed.
-  
+
     Ltac trydec :=
-    repeat match goal with 
+    repeat match goal with
       | |- { _ = _ :> nat } + { _ } => apply eq_nat_dec
-      | |- { _ <= _ } + { ~ ( _ <= _ ) } => apply le_dec 
+      | |- { _ <= _ } + { ~ ( _ <= _ ) } => apply le_dec
       | |- { _ <> _ } + { ~ ( _ <> _) } => apply neqX_dec
       | |- { ?a /\ ?b } + { ~ (?a /\ ?b) } => apply and_dec
       | |- { ?a \/ ?b } + { ~ (?a \/ ?b) } => apply or_dec
       | |- { ?a -> ?b } + { ~ (?a -> ?b) } => apply imp_dec
       | |- { ?a <-> ?b } + { ~ (?a <-> ?b) } => apply iff_dec
     end.
-    
+
     Fact LR2_condition_dec x ga de th : { LR2_condition x ga de th } + { ~ LR2_condition x ga de th }.
     Proof.
       unfold LR2_condition, LR2_condition_1, LR2_condition_2.
@@ -489,11 +489,11 @@ Section Relevant.
       intros ?; contradict Hy.
       apply in_or_app; right.
       apply in_or_app; right.
-      apply in_occ_neq0 with eqX_dec; omega.
+      apply in_occ_neq0 with eqX_dec; lia.
       intros ?; contradict Hy.
       apply in_or_app; right.
       apply in_or_app; right.
-      apply in_occ_neq0 with eqX_dec; omega.
+      apply in_occ_neq0 with eqX_dec; lia.
       trydec.
     Qed.
 
@@ -504,7 +504,7 @@ Section Relevant.
     Qed.
 
   End LR2_cond_dec.
-  
+
   Fact LR2_condition_finite_t α Θ : finite_t (fun p : _ * _ => let (Γ,Δ) := p in LR2_condition α Γ Δ Θ).
   Proof.
     generalize (subset_finite_t (Θ++Θ)); intros H2th.
@@ -519,10 +519,10 @@ Section Relevant.
     split; simpl.
     generalize (LR2_condition_2contract_1 H).
     intros H1; apply occ_subset with eqX_dec.
-    intros d; generalize (H1 d); rewrite occ_app; omega.
+    intros d; generalize (H1 d); rewrite occ_app; lia.
     generalize (LR2_condition_2contract_2 H).
     intros H1; apply occ_subset with eqX_dec.
-    intros d; generalize (H1 d); rewrite occ_app; omega.
+    intros d; generalize (H1 d); rewrite occ_app; lia.
   Qed.
 
   Lemma LR2c_finite_t α Θ : finite_t (fun p : _ * _ => let (Γ,Δ) := p in LR2c α Γ Δ Θ).
